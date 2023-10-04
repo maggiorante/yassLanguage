@@ -27,7 +27,7 @@ FOR
 	:	'for';
 IN
 	:	'in';
-IMPORT
+IMPORT_TOK
 	:	'@import';
 INCLUDE
 	:	'@include';
@@ -88,6 +88,6 @@ COMMENT
 
 // Whitespace -- ignored
 NEWLINE
-	:	 ('\r'? '\n')+ { $channel = HIDDEN; };
+	:	('\r'? '\n')+ { $channel = HIDDEN; };
 WS
 	:	(' ' | '\t')+ { $channel = HIDDEN; };

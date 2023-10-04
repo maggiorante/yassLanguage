@@ -7,7 +7,8 @@ options {
 }
 
 tokens {
-  LIST;
+    LIST;
+    IMPORT;
 	NESTED;
 	NEST;
 	RULE;
@@ -31,13 +32,13 @@ tokens {
 @members { public boolean interactiveMode; }
 
 list
-	: LBRACKET listValue (COMMA listValue)* RBRACKET -> ^(LIST listValue+);
+	: LBRACKET listValue (COMMA listValue)* RBRACKET -> ^(LIST listValue+ );
 
 listValue
 	:	STRING | NUM;
 	
 forLoop
-	: FOR IDENT IN list -> ^(FOR IDENT list);
+	: FOR IDENT IN list LBRACE STRING RBRACE -> ^(FOR IDENT list STRING);
 
 assignRule
   : IDENT EQUAL value terminator -> ^(ASSIGNMENT IDENT value)
@@ -53,14 +54,14 @@ value
 
 // This is the "start rule".
 stylesheet
-	: importRule* assignRule* forLoop? (nested | ruleset)+
+	: importRule* assignRule* forLoop* (nested | ruleset)*
 	;
 	
 string
 	:	STRING;
 
 importRule
-	: (IMPORT | INCLUDE) string -> ^( IMPORT string )
+	: (IMPORT_TOK | INCLUDE) string -> ^( IMPORT string )
 	;
 
 nested

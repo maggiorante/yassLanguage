@@ -5,7 +5,7 @@ assign(name, value) ::= <<--<name>: <value>;>>
 number(text) ::= "<text>"
 string(text) ::= "<text>"
 
-stylesheet(imports, assignments, forLoop) ::= <<
+stylesheet(imports, assignments, forLoops) ::= <<
 <imports; separator="\n">
 :root {
   <assignments; separator="\n">
@@ -19,4 +19,4 @@ list(values) ::= <<
 <values; separator="\n">
 >>
 
-forLoop(list) ::= "<list>"
+forLoop(elements, content) ::= "<elements:{element | <element> <content>;}>"
