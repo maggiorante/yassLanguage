@@ -9,13 +9,11 @@ public class Processor {
 
     public static void main(String[] args)
     throws IOException, RecognitionException {
-        if (args.length == 0) {
-            new Processor().processInteractive();
-        } else if (args.length == 1) { // name of file to process passed in
+        if (args.length == 1) { // name of file to process passed in
             new Processor().processFile(args[0]);
         } else { // more than one command-line argument
             System.err.println(
-                "usage: java com.ociweb.yass.Processor [file-name]");
+                "usage: java -jar lib.jar [file-name]");
         }
     }
 
@@ -30,8 +28,8 @@ public class Processor {
     private CommonTree getAST(Reader reader)
     throws IOException, RecognitionException {
         YassParser tokenParser = new YassParser(getTokenStream(reader));
-        YassParser.script_return parserResult =
-            tokenParser.script(); // start rule method
+        YassParser.stylesheet_return parserResult =
+            tokenParser.stylesheet(); // start rule method
         reader.close();
         return (CommonTree) parserResult.getTree();
     }
@@ -56,46 +54,8 @@ public class Processor {
     throws IOException, RecognitionException {
         YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
         setupTemplates(treeParser);
-        YassTree.script_return result = treeParser.script();
+        YassTree.stylesheet_return result = treeParser.stylesheet();
         System.out.println(result.getTemplate());
-    }
-
-    private void processInteractive()
-    throws IOException, RecognitionException {
-        BufferedReader br =
-            new BufferedReader(new InputStreamReader(System.in));
-
-        while (true) {
-            System.out.print("yass> ");
-            String line = br.readLine().trim();
-            if ("quit".equals(line) || "exit".equals(line)) break;
-            processLine(line);
-        }
-
-        br.close();
-    }
-
-    // This is public so it can be used by unit tests.
-    public void processLine(String line)
-    throws IOException, RecognitionException {
-        // Run the lexer and token parser on the line.
-        YassLexer lexer = new YassLexer(new ANTLRStringStream(line));
-        YassParser tokenParser = new YassParser(new CommonTokenStream(lexer));
-        tokenParser.interactiveMode = true;
-        YassParser.statement_return parserResult = tokenParser.statement();
-
-        // Use the tree parser to build the AST.
-        CommonTree ast = (CommonTree) parserResult.getTree();
-        if (ast == null) return; // line is empty
-
-        // Use the tree parser to process the AST.
-        YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
-        treeParser.statement();
-        
-        setupTemplates(treeParser);
-        YassTree.statement_return r = treeParser.statement();
-        System.out.println("r = " + r);
-        System.out.println(r.getTemplate().toString());
     }
 
     // This is only used by unit tests and that's why it's public.

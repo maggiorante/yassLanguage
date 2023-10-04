@@ -3,9 +3,13 @@ group YassTree;
 assign(name, value) ::= <<--<name>: <value>;>>
 
 number(text) ::= "<text>"
+string(text) ::= "<text>"
 
-script(statements) ::= <<
+stylesheet(imports, assignments) ::= <<
+<imports; separator="\n">
 :root {
-  <statements; separator="\n">
+  <assignments; separator="\n">
 }
 >>
+
+printImport(value) ::= "@import(<value>)"

@@ -2,44 +2,92 @@ lexer grammar YassLexer;
 
 @header { package org.unibg; }
 
-ASSIGN: '=';
-ASSIGN_CSS: ':';
-INTERPOLATOR: '$';
-LEFT_PAREN: '(';
-LEFT_BRACKET: '[';
-LEFT_BRACE: '{';
-RIGHT_PAREN: ')';
-RIGHT_BRACKET: ']';
-RIGHT_BRACE: '}';
-SEMICOL : ';';
+// Keywords/keysymbols
+EQUAL
+	:	'=';
+INTERPOLATOR
+	:	'$';
+LPAREN
+	:	'(';
+LBRACKET
+	:	'[';
+LBRACE
+	:	'{';
+RPAREN
+	:	')';
+RBRACKET
+	:	']';
+RBRACE
+	:	'}';
+SEMICOL
+	:	';';
 COMMA 
 	:	',';
-NUMBER: INTEGER;
-SIGN: '+' | '-';
-FOR
-	:	 'for';
-IN 
+FOR_TOK
+	:	'for';
+IN
 	:	'in';
-fragment INTEGER: '0' | SIGN? '1'..'9' '0'..'9'*;
+IMPORT_TOK
+	:	'@import';
+INCLUDE
+	:	'@include';
+AT
+	:	'@';
+LANGBRACK
+	:	'<';
+PLUS
+	:	'+';
+HASHTAG
+	:	'#';
+DOT
+	:	'.';
+COLON
+	:	':';
+DOUBLECOLON
+	:	'::';
+TILDE
+	:	'~';
+PIPE
+	:	'|';
+UNIT
+	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz');
+	
+// Tokens
+IDENT
+	:	('_' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' ) 
+		('_' | '-' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' | '0'..'9')*
+	|	'-' ('_' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' ) 
+		('_' | '-' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' | '0'..'9')*
+	;
 
-SINGLE_COMMENT: '//' ~('\r' | '\n')* NEWLINE { skip(); };
-//MULTI_COMMENT: '/*' (options {greedy=false;}:.)* '*/' NEWLINE? { skip(); };
-MULTI_COMMENT
-options { greedy = false; }
-  : '/*' .* '*/' NEWLINE? { skip(); };
+STRING
+	:	'"' (~('"'|'\n'|'\r'))* '"'
+	|	'\'' (~('\''|'\n'|'\r'))* '\''
+	;
+	
+NUM
+	:	'-' (('0'..'9')* '.')? ('0'..'9')+
+	|	(('0'..'9')* '.')? ('0'..'9')+
+	;
 
-NAME: LETTER (LETTER | DIGIT | '_')*;
-STRING_LITERAL: '"' NONCONTROL_CHAR* '"';
-// Note that NONCONTROL_CHAR does not include the double-quote character.
-fragment NONCONTROL_CHAR: LETTER | DIGIT | SPACE;
-fragment LETTER: LOWER | UPPER;
-fragment LOWER: 'a'..'z';
-fragment UPPER: 'A'..'Z';
-fragment DIGIT: '0'..'9';
-fragment SPACE: ' ' | '\t';
+COLOR
+	:	'#' ('0'..'9'|'a'..'f'|'A'..'F')+
+	;
+	
+// Single-line comments
+SL_COMMENT
+	:	'//'
+		(~('\n'|'\r'))* ('\n'|'\r'('\n')?)
+		{$channel=HIDDEN;}
+	;
+	
+// Multiple-line comments
+COMMENT
+	:	'/*' .* '*/' { $channel = HIDDEN; }
+	;
 
-// Windows uses \r\n. UNIX and Mac OS X use \n.
-// To use newlines as a terminator,
-// they can't be written to the hidden channel!
-NEWLINE: ('\r'? '\n')+ { $channel = HIDDEN; };
-WHITESPACE: SPACE+ { $channel = HIDDEN; };
+// Whitespace -- ignored
+NEWLINE
+	:	 ('\r'? '\n')+ { $channel = HIDDEN; };
+WS
+	:	(' ' | '\t')+ { $channel = HIDDEN; };

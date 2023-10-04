@@ -3,35 +3,133 @@ parser grammar YassParser;
 options {
   output = AST;
   tokenVocab = YassLexer;
+  k=5;
 }
 
 tokens {
-  LIST;
+    LIST;
+    IMPORT;
+	NESTED;
+	NEST;
+	RULE;
+	ATTRIB;
+	PARENTOF;
+	PRECEDEDS;
+	ATTRIBEQUAL;
+	HASVALUE;
+	BEGINSWITH;
+	PSEUDO;
+	PROPERTY;
+	FUNCTION;
+	TAG;
+	ID;
+	CLASS;
+	ASSIGNMENT;
 }
 
 @header { package org.unibg; }
 
 @members { public boolean interactiveMode; }
 
-list
-	: LEFT_BRACKET NUMBER (COMMA NUMBER)* RIGHT_BRACKET -> ^(LIST NUMBER+);
 
-for_loop
-	: FOR NAME IN list -> ^(FOR NAME list);
-
-assign
-  : NAME ASSIGN value terminator -> ^(ASSIGN NAME value);
-
-// This is the "start rule".
-script: statement*; // EOF!;
-
-statement
-  : assign
-  | for_loop
+assignRule
+  : IDENT EQUAL value terminator -> ^(ASSIGNMENT IDENT value)
   ;
+  
+terminator: SEMICOL;
 
 // EOF cannot be used in lexer rules, so we made this a parser rule.
 // EOF is needed here for interactive mode where each line entered ends in EOF.
-terminator: SEMICOL;
 
-value: NUMBER;
+value
+	:	STRING | NUM;
+
+// This is the "start rule".
+stylesheet
+	: importRule* assignRule* (nested | ruleset)*
+	;
+	
+string
+	:	STRING;
+
+importRule
+	: (IMPORT_TOK | INCLUDE) string -> ^( IMPORT string )
+	;
+
+nested
+ 	: AT nest LBRACE properties? nested* RBRACE -> ^( NESTED nest properties* nested* )
+	;
+
+nest
+	: IDENT IDENT* pseudo* -> ^( NEST IDENT IDENT* pseudo* )
+	;
+	
+ruleset
+ 	: selectors LBRACE properties? RBRACE -> ^( RULE selectors properties* )
+	;
+	
+selectors
+	: selector (COMMA selector)*
+	;
+	
+selector
+	: elem selectorOperation* attrib* pseudo? ->  elem selectorOperation* attrib* pseudo*
+	;
+
+selectorOperation
+	: selectop? elem -> selectop* elem
+	;
+
+selectop
+	: LANGBRACK -> PARENTOF
+        | PLUS  -> PRECEDEDS
+	;
+
+properties
+	: declaration (SEMICOL declaration?)* ->  declaration+
+	;
+	
+elem
+	:     IDENT -> ^( TAG IDENT )
+	| HASHTAG IDENT -> ^( ID IDENT )
+	| DOT IDENT -> ^( CLASS IDENT )
+	;
+
+pseudo
+	: (COLON|DOUBLECOLON) IDENT -> ^( PSEUDO IDENT )
+	| (COLON|DOUBLECOLON) function -> ^( PSEUDO function )
+	;
+
+attrib
+	: LBRACKET IDENT (attribRelate (STRING | IDENT))? RBRACKET -> ^( ATTRIB IDENT (attribRelate STRING* IDENT*)? )
+	;
+	
+attribRelate
+	: EQUAL  -> ATTRIBEQUAL
+	| TILDE EQUAL -> HASVALUE
+	| PIPE EQUAL -> BEGINSWITH
+	;	
+  
+declaration
+	: IDENT COLON args -> ^( PROPERTY IDENT args )
+	;
+
+args
+	: expr (COMMA? expr)* -> expr*
+	;
+
+expr
+	: (NUM unit?)
+	| IDENT
+	| COLOR
+	| STRING
+	| function
+	;
+
+unit
+	: UNIT
+	;
+	
+function
+	: IDENT LBRACE args? RBRACE -> IDENT LBRACE args* RBRACE
+	;

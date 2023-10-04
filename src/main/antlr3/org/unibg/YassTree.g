@@ -10,18 +10,23 @@ options {
   package org.unibg;
 }
 
-assign
-  : ^(ASSIGN NAME value)
-    -> assign(name={$NAME}, value={$value.st})
+assignRule
+  : ^(ASSIGNMENT IDENT value)
+    -> assign(name={$IDENT}, value={$value.st})
   ;
   
-value
-  : NUMBER -> number(text={$NUMBER});
- 
-script: statements+=statement* -> script(statements={$statements});
+string
+ 	:	STRING -> string(text={$STRING});
 
-statement
-  : assign -> {$assign.st}
+importRule
+  : ^(IMPORT string) -> printImport(value={$string.st})
   ;
+ 
+value
+  : NUM -> number(text={$NUM})
+  | STRING -> string(text={$STRING});
+ 
+stylesheet: imports+=importRule* assignments+=assignRule* -> stylesheet(imports={$imports}, assignments={$assignments});
+//stylesheet: assignments+=assignRule* -> stylesheet(assignment={$assignments});
   
  
