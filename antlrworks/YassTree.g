@@ -19,7 +19,7 @@ forLoop
 	:	^(FOR IDENT list) -> forLoop(list={$list.st});
 	
 list
-	:	^(LIST values+=listValue+) -> list(values={$values});
+	:	^(LIST listValue+) -> list(values={$listValue.st});
 	
 listValue
   : NUM -> number(text={$NUM})
@@ -36,6 +36,6 @@ value
   : NUM -> number(text={$NUM})
   | STRING -> string(text={$STRING});
  
-stylesheet: imports+=importRule* assignments+=assignRule* forLoops+=forLoop*-> stylesheet(imports={$imports}, assignments={$assignments}, forLoops={$forLoops});
+stylesheet: imports+=importRule* assignments+=assignRule* forLoops+=forLoop? -> script(imports={$imports}, assignments={$assignments}, forLoop={$forLoops});
   
  

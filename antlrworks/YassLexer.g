@@ -27,7 +27,7 @@ FOR
 	:	'for';
 IN
 	:	'in';
-IMPORT_TOK
+IMPORT
 	:	'@import';
 INCLUDE
 	:	'@include';

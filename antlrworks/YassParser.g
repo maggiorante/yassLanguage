@@ -7,8 +7,7 @@ options {
 }
 
 tokens {
-    LIST;
-    IMPORT;
+  LIST;
 	NESTED;
 	NEST;
 	RULE;
@@ -28,6 +27,8 @@ tokens {
 }
 
 @header { package org.unibg; }
+
+@members { public boolean interactiveMode; }
 
 list
 	: LBRACKET listValue (COMMA listValue)* RBRACKET -> ^(LIST listValue+);
@@ -52,14 +53,14 @@ value
 
 // This is the "start rule".
 stylesheet
-	: importRule* assignRule* forLoop* (nested | ruleset)*
+	: importRule* assignRule* forLoop? (nested | ruleset)+
 	;
 	
 string
 	:	STRING;
 
 importRule
-	: (IMPORT_TOK | INCLUDE) string -> ^( IMPORT string )
+	: (IMPORT | INCLUDE) string -> ^( IMPORT string )
 	;
 
 nested

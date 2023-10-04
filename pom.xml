@@ -111,9 +111,29 @@
                             <outputDirectory>${basedir}/target/</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/</directory>
+                                    <directory>${basedir}/antlrworks/</directory>
                                     <includes>
                                         <include>YassTree.stg</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-g</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/main/antlr3/org/unibg/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/antlrworks/</directory>
+                                    <includes>
+                                        <include>YassLexer.g</include>
+                                        <include>YassParser.g</include>
+                                        <include>YassTree.g</include>
                                     </includes>
                                 </resource>
                             </resources>
