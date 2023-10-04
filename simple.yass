@@ -1,3 +1,4 @@
 @include "ciccio"
 a = 3;
 b = 4;
+for prova in [1,2,3]

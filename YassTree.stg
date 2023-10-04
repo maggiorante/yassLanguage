@@ -5,11 +5,18 @@ assign(name, value) ::= <<--<name>: <value>;>>
 number(text) ::= "<text>"
 string(text) ::= "<text>"
 
-stylesheet(imports, assignments) ::= <<
+stylesheet(imports, assignments, forLoop) ::= <<
 <imports; separator="\n">
 :root {
   <assignments; separator="\n">
 }
+<forLoops; separator="\n">
 >>
 
 printImport(value) ::= "@import(<value>)"
+
+list(values) ::= <<
+<values; separator="\n">
+>>
+
+forLoop(list) ::= "<list>"

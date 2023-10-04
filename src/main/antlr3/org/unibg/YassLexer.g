@@ -23,7 +23,7 @@ SEMICOL
 	:	';';
 COMMA 
 	:	',';
-FOR_TOK
+FOR
 	:	'for';
 IN
 	:	'in';

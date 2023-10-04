@@ -29,8 +29,14 @@ tokens {
 
 @header { package org.unibg; }
 
-@members { public boolean interactiveMode; }
+list
+	: LBRACKET listValue (COMMA listValue)* RBRACKET -> ^(LIST listValue+);
 
+listValue
+	:	STRING | NUM;
+	
+forLoop
+	: FOR IDENT IN list -> ^(FOR IDENT list);
 
 assignRule
   : IDENT EQUAL value terminator -> ^(ASSIGNMENT IDENT value)
@@ -42,11 +48,11 @@ terminator: SEMICOL;
 // EOF is needed here for interactive mode where each line entered ends in EOF.
 
 value
-	:	STRING | NUM;
+	:	STRING | NUM | list;
 
 // This is the "start rule".
 stylesheet
-	: importRule* assignRule* (nested | ruleset)*
+	: importRule* assignRule* forLoop* (nested | ruleset)*
 	;
 	
 string

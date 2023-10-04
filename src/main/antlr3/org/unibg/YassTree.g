@@ -14,6 +14,16 @@ assignRule
   : ^(ASSIGNMENT IDENT value)
     -> assign(name={$IDENT}, value={$value.st})
   ;
+ 
+forLoop
+	:	^(FOR IDENT list) -> forLoop(list={$list.st});
+	
+list
+	:	^(LIST values+=listValue+) -> list(values={$values});
+	
+listValue
+  : NUM -> number(text={$NUM})
+  | STRING -> string(text={$STRING});
   
 string
  	:	STRING -> string(text={$STRING});
@@ -26,7 +36,6 @@ value
   : NUM -> number(text={$NUM})
   | STRING -> string(text={$STRING});
  
-stylesheet: imports+=importRule* assignments+=assignRule* -> stylesheet(imports={$imports}, assignments={$assignments});
-//stylesheet: assignments+=assignRule* -> stylesheet(assignment={$assignments});
+stylesheet: imports+=importRule* assignments+=assignRule* forLoops+=forLoop*-> stylesheet(imports={$imports}, assignments={$assignments}, forLoops={$forLoops});
   
  
