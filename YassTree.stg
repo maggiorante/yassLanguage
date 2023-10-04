@@ -1,0 +1,11 @@
+group YassTree;
+
+assign(name, value) ::= <<--<name>: <value>;>>
+
+number(text) ::= "<text>"
+
+script(statements) ::= <<
+:root {
+  <statements; separator="\n">
+}
+>>
