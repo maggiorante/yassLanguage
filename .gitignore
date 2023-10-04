@@ -1,6 +1,8 @@
 target/
 antlrworks/*.tokens
 antlrworks/*.java
+
+src/main/antlr3/org/unibg/*
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
