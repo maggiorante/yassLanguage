@@ -8,35 +8,71 @@ options {
 
 @header {
   package org.unibg;
+  import java.util.Arrays;
 }
 
+stylesheet: statements+=statement* -> stylesheet(statements={$statements});
+
+/* 
+statement
+  : assignRule -> {$assignRule.st}
+  | importRule -> {$importRule.st}
+  | forLoop -> {$forLoop.st}
+  ;
+*/
+
+statement
+  : ruleset -> {$ruleset.st}
+  ;
+
+// Cose brutte START
 assignRule
-  : ^(ASSIGNMENT IDENT value)
-    -> assign(name={$IDENT}, value={$value.st})
+  : ^(ASSIGNMENT Identifier value)
+    -> assign(name={$Identifier}, value={$value.st})
   ;
 
 forLoop
-	:	^(FOR IDENT d=list STRING) -> forLoop(elements={$d.elements}, content={$STRING});
-
+	:	^(FOR Identifier d=list StringLiteral) -> forLoop(elements={$d.elements}, content={$StringLiteral});
 	
 list returns [List elements]
 	:	^(LIST vars+=listValue+) {$elements=$vars;};
 	
 listValue
-  : NUM -> number(text={$NUM})
-  | STRING -> string(text={$STRING});
-  
-string
- 	:	STRING -> string(text={$STRING});
+  : Number -> number(text={$Number})
+  | StringLiteral -> string(text={$StringLiteral});
 
 importRule
-  : ^(IMPORT string) -> printImport(value={$string.st})
+  : IMPORT StringLiteral -> printImport(value={$StringLiteral})
   ;
  
 value
-  : NUM -> number(text={$NUM})
-  | STRING -> string(text={$STRING});
- 
-stylesheet: imports+=importRule* assignments+=assignRule* forLoops+=forLoop? -> stylesheet(imports={$imports}, assignments={$assignments}, forLoops={$forLoops});
-  
- 
+  : Number -> number(text={$Number})
+  | StringLiteral -> string(text={$StringLiteral});
+// Cose brutte END 
+
+
+
+
+
+
+ruleset
+	:	^(RULE names+=selectors ruleset*) -> printSelector(names={$names})
+	;
+	
+// Selector
+selectors returns [List names]
+	: ^(SELECTOR ns+=selector+) {$names=$ns;}{System.out.println(Arrays.toString($ns.toArray()));}
+	;
+	
+selector returns [String name]
+	: n=elem {$name=$n.name;}
+	;
+
+// Elem START
+elem returns [String name]
+	: ^(TAG n=Identifier) {$name=n.getText();}
+	| ^(ID n=Identifier) {$name=n.getText();}
+	| ^(CLASS n=Identifier) {$name=n.getText();}
+	| PARENTOF
+	;
+// Elem END

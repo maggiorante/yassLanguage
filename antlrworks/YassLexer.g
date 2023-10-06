@@ -3,74 +3,128 @@ lexer grammar YassLexer;
 @header { package org.unibg; }
 
 // Keywords/keysymbols
-EQUAL
-	:	'=';
-INTERPOLATOR
-	:	'$';
+EQ
+	:	'='
+	;
+	
+DOLLAR
+	:	'$'
+	;
+	
 LPAREN
-	:	'(';
-LBRACKET
-	:	'[';
-LBRACE
-	:	'{';
+	:	'('
+	;
+	
+LBRACK
+	:	'['
+	;
+	
+IMPORT
+	:	'@import'
+	;
+	
+BlockStart
+	:	'{'
+	;
+	
 RPAREN
-	:	')';
-RBRACKET
-	:	']';
-RBRACE
-	:	'}';
-SEMICOL
-	:	';';
+	:	')'
+	;
+	
+RBRACK
+	:	']'
+	;
+	
+BlockEnd
+	:	'}'
+	;
+	
+SEMI
+	:	';'
+	;
+	
 COMMA 
-	:	',';
+	:	','
+	;
+	
 FOR
-	:	'for';
+	:	'for'
+	;
+	
 IN
-	:	'in';
-IMPORT_TOK
-	:	'@import';
-INCLUDE
-	:	'@include';
+	:	'in'
+	;
+	
 AT
-	:	'@';
-LANGBRACK
-	:	'<';
+	:	'@'
+	;
+	
+GT
+	:	'>'
+	;
+	
 PLUS
-	:	'+';
-HASHTAG
-	:	'#';
+	:	'+'
+	;
+	
+HASH
+	:	'#'
+	;
+	
 DOT
-	:	'.';
+	:	'.'
+	;
+	
 COLON
-	:	':';
-DOUBLECOLON
-	:	'::';
-TILDE
-	:	'~';
+	:	':'
+	;
+	
+COLONCOLON
+	:	'::'
+	;
+	
+TIL
+	:	'~'
+	;
+	
 PIPE
-	:	'|';
-UNIT
-	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz');
+	:	'|'
+	;
+	
+PIPE_EQ
+   : '|='
+   ;
+   
+TILD_EQ
+   : '~='
+   ;
+   
+Unit
+	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz')
+	;
+	
+PARENTREF
+   : '&'
+   ;
 	
 // Tokens
-IDENT
-	:	('_' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' ) 
-		('_' | '-' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' | '0'..'9')*
-	|	'-' ('_' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' ) 
-		('_' | '-' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' | '0'..'9')*
+Identifier
+	:	(('_' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe') ('_' | '-' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe' | '0' .. '9')* | '-' ('_' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe') ('_' | '-' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe' | '0' .. '9')*)
 	;
 
-STRING
-	:	'"' (~('"'|'\n'|'\r'))* '"'
-	|	'\'' (~('\''|'\n'|'\r'))* '\''
+fragment STRING
+	:	'"' (~ ('"' | '\n' | '\r'))* '"' | '\'' (~ ('\'' | '\n' | '\r'))* '\''
 	;
 	
-NUM
-	:	'-' (('0'..'9')* '.')? ('0'..'9')+
-	|	(('0'..'9')* '.')? ('0'..'9')+
+StringLiteral
+	:	STRING
+	;
+	
+Number
+	:	'-' (('0' .. '9')* '.')? ('0' .. '9') + | (('0' .. '9')* '.')? ('0' .. '9') +
 	;
 
-COLOR
+Color
 	:	'#' ('0'..'9'|'a'..'f'|'A'..'F')+
 	;
 	
@@ -87,7 +141,6 @@ COMMENT
 	;
 
 // Whitespace -- ignored
-NEWLINE
-	:	('\r'? '\n')+ { $channel = HIDDEN; };
 WS
-	:	(' ' | '\t')+ { $channel = HIDDEN; };
+	:	(' ' | '\t' | ('\r'? '\n'))+ { $channel = HIDDEN; }
+	;

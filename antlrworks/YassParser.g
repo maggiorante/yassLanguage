@@ -3,19 +3,18 @@ parser grammar YassParser;
 options {
   output = AST;
   tokenVocab = YassLexer;
-  k=5;
 }
 
 tokens {
-    LIST;
-    IMPORT;
+	LIST;
 	NESTED;
 	NEST;
 	RULE;
 	ATTRIB;
 	PARENTOF;
 	PRECEDEDS;
-	ATTRIBEQUAL;
+	PRECEDED;
+	ATTRIBEQ;
 	HASVALUE;
 	BEGINSWITH;
 	PSEUDO;
@@ -25,119 +24,144 @@ tokens {
 	ID;
 	CLASS;
 	ASSIGNMENT;
+	SELECTOR;
 }
 
 @header { package org.unibg; }
 
 @members { public boolean interactiveMode; }
 
-list
-	: LBRACKET listValue (COMMA listValue)* RBRACKET -> ^(LIST listValue+ );
-
-listValue
-	:	STRING | NUM;
-	
-forLoop
-	: FOR IDENT IN list LBRACE STRING RBRACE -> ^(FOR IDENT list STRING);
-
-assignRule
-  : IDENT EQUAL value terminator -> ^(ASSIGNMENT IDENT value)
-  ;
-  
-terminator: SEMICOL;
-
-// EOF cannot be used in lexer rules, so we made this a parser rule.
-// EOF is needed here for interactive mode where each line entered ends in EOF.
-
-value
-	:	STRING | NUM | list;
 
 // This is the "start rule".
 stylesheet
-	: importRule* assignRule* forLoop* (nested | ruleset)*
-	;
-	
-string
-	:	STRING;
+   : statement*
+   ;
 
+statement
+   : ruleset
+   | assignRule
+   | forLoop
+   ;
+
+// Helpers
+terminator: SEMI;
+
+// Variables
+assignRule
+  : Identifier EQ value terminator -> ^(ASSIGNMENT Identifier value)
+  ;
+  
+value
+	:	StringLiteral | Number | list;
+
+// List
+list
+	: LBRACK listValue (COMMA listValue)* RBRACK -> ^(LIST listValue+ );
+
+listValue
+	:	StringLiteral | Number;
+
+// Loops
+forLoop
+	: FOR Identifier IN list BlockStart StringLiteral BlockEnd -> ^(FOR Identifier list StringLiteral)
+	;
+
+// Imports
 importRule
-	: (IMPORT_TOK | INCLUDE) string -> ^( IMPORT string )
+	: IMPORT StringLiteral
 	;
 
-nested
- 	: AT nest LBRACE properties? nested* RBRACE -> ^( NESTED nest properties* nested* )
-	;
-
-nest
-	: IDENT IDENT* pseudo* -> ^( NEST IDENT IDENT* pseudo* )
-	;
-	
+// Style blocks
+/*
 ruleset
- 	: selectors LBRACE properties? RBRACE -> ^( RULE selectors properties* )
+ 	: selectors BlockStart property* ruleset* BlockEnd -> ^(RULE selectors property* ruleset*)
 	;
-	
-selectors
-	: selector (COMMA selector)*
-	;
-	
-selector
-	: elem selectorOperation* attrib* pseudo? ->  elem selectorOperation* attrib* pseudo*
+*/
+ruleset
+ 	: selectors BlockStart ruleset* BlockEnd -> ^(RULE selectors ruleset*)
 	;
 
+// Selector
+selectors
+	: selector (COMMA selector)* -> ^(SELECTOR selector+)
+	;
+
+/*
+selector
+	: elem selectorOperation* attrib* pseudo? -> elem selectorOperation* attrib* pseudo*
+	;
+*/
+
+selector
+	: elem selectorOperation* attrib* pseudo? -> elem
+	;
+
+// Elem START
+elem
+	: Identifier -> ^(TAG Identifier)
+	| HASH Identifier -> ^(ID Identifier)
+	| DOT Identifier -> ^(CLASS Identifier)
+	| PARENTOF
+	;
+// Elem END
+
+// SelectOperation START
 selectorOperation
 	: selectop? elem -> selectop* elem
 	;
 
 selectop
-	: LANGBRACK -> PARENTOF
-        | PLUS  -> PRECEDEDS
+	: GT -> PARENTOF
+  | PLUS -> PRECEDEDS
+  | TIL -> PRECEDED
 	;
+// SelectOperation END
 
-properties
-	: declaration (SEMICOL declaration?)* ->  declaration+
-	;
-	
-elem
-	:     IDENT -> ^( TAG IDENT )
-	| HASHTAG IDENT -> ^( ID IDENT )
-	| DOT IDENT -> ^( CLASS IDENT )
-	;
-
-pseudo
-	: (COLON|DOUBLECOLON) IDENT -> ^( PSEUDO IDENT )
-	| (COLON|DOUBLECOLON) function -> ^( PSEUDO function )
-	;
-
+// Attribute START
 attrib
-	: LBRACKET IDENT (attribRelate (STRING | IDENT))? RBRACKET -> ^( ATTRIB IDENT (attribRelate STRING* IDENT*)? )
+	: LBRACK Identifier (attribRelate (StringLiteral | Identifier))? RBRACK -> ^(ATTRIB Identifier (attribRelate StringLiteral* Identifier*)?)
 	;
 	
 attribRelate
-	: EQUAL  -> ATTRIBEQUAL
-	| TILDE EQUAL -> HASVALUE
-	| PIPE EQUAL -> BEGINSWITH
+	: EQ -> ATTRIBEQ
+	| TILD_EQ -> HASVALUE
+	| PIPE_EQ -> BEGINSWITH
 	;	
-  
-declaration
-	: IDENT COLON args -> ^( PROPERTY IDENT args )
-	;
+// Attribute END
 
+// Pseudo START
+pseudo
+	: (COLON|COLONCOLON) Identifier -> ^(PSEUDO Identifier)
+	| (COLON|COLONCOLON) function -> ^(PSEUDO function)
+	;
+	
+function
+	: Identifier LPAREN args? RPAREN -> ^(FUNCTION Identifier args*)
+	;
+	
 args
 	: expr (COMMA? expr)* -> expr*
 	;
 
 expr
-	: (NUM unit?)
-	| IDENT
-	| COLOR
-	| STRING
+	: measurement
+	| Identifier
+	| Color
+	| StringLiteral
 	| function
 	;
 
-unit
-	: UNIT
+measurement
+  : Number Unit?
+  ;
+// Pseudo END
+
+// Properties START
+property
+	: declaration SEMI -> ^(PROPERTY declaration)
 	;
-	
-function
-	: IDENT LBRACE args? RBRACE -> IDENT LBRACE args* RBRACE
+  
+declaration
+	: Identifier COLON args -> Identifier args
 	;
+// Properties END
