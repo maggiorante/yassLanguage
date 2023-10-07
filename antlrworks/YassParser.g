@@ -10,19 +10,18 @@ tokens {
 	NESTED;
 	NEST;
 	RULE;
+	
+	// Attributes
 	ATTRIB;
-	PARENTOF;
-	PRECEDEDS;
-	PRECEDED;
-	ATTRIBEQ;
+	CONTAINSVALUE;
 	HASVALUE;
 	BEGINSWITH;
+	
+	// Pseudo
 	PSEUDO;
 	PROPERTY;
 	FUNCTION;
-	TAG;
-	ID;
-	CLASS;
+	
 	ASSIGNMENT;
 	SELECTOR;
 }
@@ -39,8 +38,6 @@ stylesheet
 
 statement
    : ruleset
-   | assignRule
-   | forLoop
    ;
 
 // Helpers
@@ -83,39 +80,32 @@ ruleset
 
 // Selector
 selectors
-	: selector (COMMA selector)* -> ^(SELECTOR selector+)
+	: selector (COMMA selector)*
 	;
 
 /*
 selector
-	: elem selectorOperation* attrib* pseudo? -> elem selectorOperation* attrib* pseudo*
+	: element+ attrib* pseudo? -> element attrib* pseudo*
 	;
 */
 
 selector
-	: elem selectorOperation* attrib* pseudo? -> elem
+	: element+ attrib* pseudo? -> element+
 	;
 
 // Elem START
-elem
-	: Identifier -> ^(TAG Identifier)
-	| HASH Identifier -> ^(ID Identifier)
-	| DOT Identifier -> ^(CLASS Identifier)
-	| PARENTOF
+element
+	: selectorPrefix Identifier
+	| Identifier
+	| TIMES
+	| PARENTREF
+	//| pseudo
 	;
+
+selectorPrefix
+   : (GT | PLUS | TIL | HASH | DOT)
+   ;
 // Elem END
-
-// SelectOperation START
-selectorOperation
-	: selectop? elem -> selectop* elem
-	;
-
-selectop
-	: GT -> PARENTOF
-  | PLUS -> PRECEDEDS
-  | TIL -> PRECEDED
-	;
-// SelectOperation END
 
 // Attribute START
 attrib
@@ -123,8 +113,8 @@ attrib
 	;
 	
 attribRelate
-	: EQ -> ATTRIBEQ
-	| TILD_EQ -> HASVALUE
+	: EQ -> HASVALUE
+	| TILD_EQ -> CONTAINSVALUE
 	| PIPE_EQ -> BEGINSWITH
 	;	
 // Attribute END

@@ -13,7 +13,7 @@ public class Processor {
             new Processor().processFile(args[0]);
         } else { // more than one command-line argument
             System.err.println(
-                "usage: java -jar lib.jar [file-name]");
+                "usage: java -jar [lib.jar] [file-name]");
         }
     }
 
@@ -28,8 +28,7 @@ public class Processor {
     private CommonTree getAST(Reader reader)
     throws IOException, RecognitionException {
         YassParser tokenParser = new YassParser(getTokenStream(reader));
-        YassParser.stylesheet_return parserResult =
-            tokenParser.stylesheet(); // start rule method
+        YassParser.stylesheet_return parserResult = tokenParser.stylesheet(); // start rule method
         reader.close();
         return (CommonTree) parserResult.getTree();
     }

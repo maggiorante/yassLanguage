@@ -8,7 +8,8 @@ options {
 
 @header {
   package org.unibg;
-  import java.util.Arrays;
+  import java.lang.StringBuilder;
+  import java.util.ArrayList;
 }
 
 stylesheet: statements+=statement* -> stylesheet(statements={$statements});
@@ -53,26 +54,50 @@ value
 
 
 
-
+// {System.out.println(String.join(",", $names.names));}
+// {System.out.println($sel[2].name);}
 
 ruleset
-	:	^(RULE names+=selectors ruleset*) -> printSelector(names={$names})
+	:	^(RULE selectors ruleset*)
 	;
 	
 // Selector
-selectors returns [List names]
-	: ^(SELECTOR ns+=selector+) {$names=$ns;}{System.out.println(Arrays.toString($ns.toArray()));}
+
+selectors returns [List sels]
+	@init
+	{
+		$sels = new ArrayList();
+	}
+	: s=selector {$sels.add($s.sel);} (COMMA s=selector {$sels.add($COMMA.text + $s.sel);})* {System.out.println($sels);}
 	;
-	
-selector returns [String name]
-	: n=elem {$name=$n.name;}
+
+
+selector returns [String sel]
+	scope
+	{
+		StringBuilder sb;
+	}
+	@init
+	{
+		$selector::sb = new StringBuilder();
+	}
+	@after
+	{
+		$sel = $selector::sb.toString();
+	}
+	: (element)+
 	;
 
 // Elem START
-elem returns [String name]
-	: ^(TAG n=Identifier) {$name=n.getText();}
-	| ^(ID n=Identifier) {$name=n.getText();}
-	| ^(CLASS n=Identifier) {$name=n.getText();}
-	| PARENTOF
+element
+	: selectorPrefix Identifier {$selector::sb.append($Identifier.text);}
+	| Identifier {$selector::sb.append(" ").append($Identifier.text);}
+	| TIMES {$selector::sb.append($TIMES.text);}
+	| PARENTREF {$selector::sb.append($PARENTREF.text);}
 	;
+	
+selectorPrefix
+   : i=(GT | PLUS | TIL | HASH | DOT) {$selector::sb.append($i.text);}
+   ;
+
 // Elem END
