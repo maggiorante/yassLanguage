@@ -17,6 +17,7 @@ public class Processor {
         }
     }
 
+    // Process a file
     private void processFile(String filePath)
     throws IOException, RecognitionException {
         CommonTree ast = getAST(new FileReader(filePath));
@@ -25,6 +26,7 @@ public class Processor {
         processAST(ast);
     }
 
+    // Create a parser that feeds off the token stream and returns the generated AST
     private CommonTree getAST(Reader reader)
     throws IOException, RecognitionException {
         YassParser tokenParser = new YassParser(getTokenStream(reader));
@@ -33,14 +35,14 @@ public class Processor {
         return (CommonTree) parserResult.getTree();
     }
 
+    // Create a lexer that feeds from a stream
     private CommonTokenStream getTokenStream(Reader reader)
     throws IOException {
         YassLexer lexer = new YassLexer(new ANTLRReaderStream(reader));
         return new CommonTokenStream(lexer);
     }
 
-    // Note that setTemplateLib is a method in the generated YassTree class,
-    // not in the TreeParser superclass.
+    // Note that setTemplateLib is a method in the generated YassTree class, not in the TreeParser superclass.
     private static void setupTemplates(YassTree treeParser)
     throws IOException {
         Reader reader = new FileReader("YassTree.stg");
@@ -48,31 +50,18 @@ public class Processor {
         reader.close();
     }
 
-    // This is public so it can be used by unit tests.
+    // Walk resulting tree
     public void processAST(CommonTree ast)
     throws IOException, RecognitionException {
+        YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
+        treeParser.stylesheet();
+        /*
+        // If using string templates
         YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
         setupTemplates(treeParser);
         YassTree.stylesheet_return result = treeParser.stylesheet();
         System.out.println(result.getTemplate());
-    }
-
-    // This is only used by unit tests and that's why it's public.
-    public CommonTree getAST(String script)
-    throws IOException, RecognitionException {
-        StringReader sr = new StringReader(script);
-        CommonTree ast = getAST(sr);
-        sr.close();
-        return ast;
-    }
-
-    // This is only used by unit tests and that's why it's public.
-    public CommonTokenStream getTokenStream(String script)
-    throws IOException {
-        StringReader sr = new StringReader(script);
-        CommonTokenStream ts = getTokenStream(sr);
-        sr.close();
-        return ts;
+         */
     }
 
 } // end of Processor class
