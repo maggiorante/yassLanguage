@@ -42,12 +42,16 @@ public class Processor {
         return new CommonTokenStream(lexer);
     }
 
+
     // Note that setTemplateLib is a method in the generated YassTree class, not in the TreeParser superclass.
     private static void setupTemplates(YassTree treeParser)
     throws IOException {
+        /*
+        // If using string templates
         Reader reader = new FileReader("YassTree.stg");
         treeParser.setTemplateLib(new StringTemplateGroup(reader));
         reader.close();
+         */
     }
 
     // Walk resulting tree

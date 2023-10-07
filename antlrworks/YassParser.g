@@ -23,7 +23,6 @@ tokens {
 	FUNCTION;
 	
 	ASSIGNMENT;
-	SELECTOR;
 }
 
 @header { package org.unibg; }
@@ -40,34 +39,6 @@ statement
    : ruleset
    ;
 
-// Helpers
-terminator: SEMI;
-
-// Variables
-assignRule
-  : Identifier EQ value terminator -> ^(ASSIGNMENT Identifier value)
-  ;
-  
-value
-	:	StringLiteral | Number | list;
-
-// List
-list
-	: LBRACK listValue (COMMA listValue)* RBRACK -> ^(LIST listValue+ );
-
-listValue
-	:	StringLiteral | Number;
-
-// Loops
-forLoop
-	: FOR Identifier IN list BlockStart StringLiteral BlockEnd -> ^(FOR Identifier list StringLiteral)
-	;
-
-// Imports
-importRule
-	: IMPORT StringLiteral
-	;
-
 // Style blocks
 /*
 ruleset
@@ -79,6 +50,7 @@ ruleset
 	;
 
 // Selector
+// Per farlo funzionare o fai così e per i selector metti il token virtuale SELECTOR oppure lo lasci senza trasformarlo in AST. Stampa l'ast da codice per capire il motivo...
 selectors
 	: selector (COMMA selector)*
 	;

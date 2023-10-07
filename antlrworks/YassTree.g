@@ -3,59 +3,27 @@ tree grammar YassTree;
 options { 
   ASTLabelType = CommonTree;
   tokenVocab = YassParser; // because it contains a token spec.
-  output = template;
 }
 
 @header {
-  package org.unibg;
-  import java.lang.StringBuilder;
-  import java.util.ArrayList;
+package org.unibg;
+import java.lang.StringBuilder;
+import java.util.ArrayList;
+import java.util.HashMap;
 }
 
-stylesheet: statements+=statement* -> stylesheet(statements={$statements});
+@members {
+// Map variable name to Integer object holding value
+HashMap memory = new HashMap();
+}
 
-/* 
+stylesheet
+	: statement*
+	;
+
 statement
-  : assignRule -> {$assignRule.st}
-  | importRule -> {$importRule.st}
-  | forLoop -> {$forLoop.st}
+  : ruleset
   ;
-*/
-
-statement
-  : ruleset -> {$ruleset.st}
-  ;
-
-// Cose brutte START
-assignRule
-  : ^(ASSIGNMENT Identifier value)
-    -> assign(name={$Identifier}, value={$value.st})
-  ;
-
-forLoop
-	:	^(FOR Identifier d=list StringLiteral) -> forLoop(elements={$d.elements}, content={$StringLiteral});
-	
-list returns [List elements]
-	:	^(LIST vars+=listValue+) {$elements=$vars;};
-	
-listValue
-  : Number -> number(text={$Number})
-  | StringLiteral -> string(text={$StringLiteral});
-
-importRule
-  : IMPORT StringLiteral -> printImport(value={$StringLiteral})
-  ;
- 
-value
-  : Number -> number(text={$Number})
-  | StringLiteral -> string(text={$StringLiteral});
-// Cose brutte END 
-
-
-
-
-// {System.out.println(String.join(",", $names.names));}
-// {System.out.println($sel[2].name);}
 
 ruleset
 	:	^(RULE selectors ruleset*)
@@ -63,41 +31,49 @@ ruleset
 	
 // Selector
 
-selectors returns [List sels]
-	@init
-	{
-		$sels = new ArrayList();
-	}
-	: s=selector {$sels.add($s.sel);} (COMMA s=selector {$sels.add($COMMA.text + $s.sel);})* {System.out.println($sels);}
-	;
-
-
-selector returns [String sel]
+selectors returns [String sel]
 	scope
 	{
 		StringBuilder sb;
 	}
 	@init
 	{
-		$selector::sb = new StringBuilder();
+		$selectors::sb = new StringBuilder();
 	}
 	@after
 	{
-		$sel = $selector::sb.toString();
+		$sel = $selectors::sb.toString();
+		System.out.println($sel);
 	}
-	: (element)+
+	: selector (COMMA {$selectors::sb.append(", ");} selector )*
+	;
+
+selector
+	scope
+	{
+		boolean isFirst;
+	}
+	@init
+	{
+		$selector::isFirst = true;
+	}
+	: element+
 	;
 
 // Elem START
 element
-	: selectorPrefix Identifier {$selector::sb.append($Identifier.text);}
-	| Identifier {$selector::sb.append(" ").append($Identifier.text);}
-	| TIMES {$selector::sb.append($TIMES.text);}
-	| PARENTREF {$selector::sb.append($PARENTREF.text);}
+	@after
+	{
+		$selector::isFirst = false;
+	}
+	: selectorPrefix Identifier {$selectors::sb.append($Identifier.text);}
+	| Identifier {$selectors::sb.append($selector::isFirst ? "" : " ").append($Identifier.text);}
+	| TIMES {$selectors::sb.append($TIMES.text);}
+	| PARENTREF {$selectors::sb.append($PARENTREF.text);}
 	;
 	
 selectorPrefix
-   : i=(GT | PLUS | TIL | HASH | DOT) {$selector::sb.append($i.text);}
+   : i=(GT | PLUS | TIL | HASH | DOT) {$selectors::sb.append($i.text);}
    ;
 
 // Elem END
