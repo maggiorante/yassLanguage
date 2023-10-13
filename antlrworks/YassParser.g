@@ -3,13 +3,12 @@ parser grammar YassParser;
 options {
   output = AST;
   tokenVocab = YassLexer;
+  backtrack = true;
 }
 
 tokens {
-	LIST;
-	NESTED;
-	NEST;
 	RULE;
+	BLOCK;
 	
 	// Attributes
 	ATTRIB;
@@ -19,16 +18,15 @@ tokens {
 	
 	// Pseudo
 	PSEUDO;
-	PROPERTY;
-	FUNCTION;
 	
 	ASSIGNMENT;
 }
 
-@header { package org.unibg; }
+@header {
+package org.unibg;
+}
 
-@members { public boolean interactiveMode; }
-
+// ----------------------------------------------------------------------------------------
 
 // This is the "start rule".
 stylesheet
@@ -39,15 +37,19 @@ statement
    : ruleset
    ;
 
+// ----------------------------------------------------------------------------------------
+
 // Style blocks
-/*
 ruleset
- 	: selectors BlockStart property* ruleset* BlockEnd -> ^(RULE selectors property* ruleset*)
+ 	: selectors block -> ^(RULE selectors block)
 	;
-*/
-ruleset
- 	: selectors BlockStart ruleset* BlockEnd -> ^(RULE selectors ruleset*)
+
+// "backtrack = true;" needed
+block
+	:	BlockStart (property | ruleset)* BlockEnd -> ^(BLOCK ruleset*)
 	;
+
+// ----------------------------------------------------------------------------------------
 
 // Selector
 // Per farlo funzionare o fai così e per i selector metti il token virtuale SELECTOR oppure lo lasci senza trasformarlo in AST. Stampa l'ast da codice per capire il motivo...
@@ -55,31 +57,31 @@ selectors
 	: selector (COMMA selector)*
 	;
 
-/*
-selector
-	: element+ attrib* pseudo? -> element attrib* pseudo*
-	;
-*/
-
+// attrib* pseudo*
 selector
 	: element+ attrib* pseudo? -> element+
 	;
+	
+// ----------------------------------------------------------------------------------------
 
-// Elem START
+// Element
 element
 	: selectorPrefix Identifier
 	| Identifier
+	| HASH Identifier
+	| DOT Identifier
 	| TIMES
 	| PARENTREF
 	//| pseudo
 	;
 
 selectorPrefix
-   : (GT | PLUS | TIL | HASH | DOT)
+   : (GT | PLUS | TIL)
    ;
-// Elem END
 
-// Attribute START
+// ----------------------------------------------------------------------------------------
+
+// Attribute
 attrib
 	: LBRACK Identifier (attribRelate (StringLiteral | Identifier))? RBRACK -> ^(ATTRIB Identifier (attribRelate StringLiteral* Identifier*)?)
 	;
@@ -89,16 +91,17 @@ attribRelate
 	| TILD_EQ -> CONTAINSVALUE
 	| PIPE_EQ -> BEGINSWITH
 	;	
-// Attribute END
 
-// Pseudo START
+// ----------------------------------------------------------------------------------------
+
+// Pseudo
 pseudo
 	: (COLON|COLONCOLON) Identifier -> ^(PSEUDO Identifier)
 	| (COLON|COLONCOLON) function -> ^(PSEUDO function)
 	;
 	
 function
-	: Identifier LPAREN args? RPAREN -> ^(FUNCTION Identifier args*)
+	: Identifier LPAREN args? RPAREN -> Identifier LPAREN args* RPAREN
 	;
 	
 args
@@ -116,14 +119,14 @@ expr
 measurement
   : Number Unit?
   ;
-// Pseudo END
 
-// Properties START
+// ----------------------------------------------------------------------------------------
+
+// Properties
 property
-	: declaration SEMI -> ^(PROPERTY declaration)
+	: declaration SEMI
 	;
   
 declaration
 	: Identifier COLON args -> Identifier args
 	;
-// Properties END

@@ -2,15 +2,11 @@ lexer grammar YassLexer;
 
 @header { package org.unibg; }
 
-// Keywords/keysymbols
-EQ
-	:	'='
+Unit
+	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz')
 	;
-	
-DOLLAR
-	:	'$'
-	;
-	
+
+// Separators
 LPAREN
 	:	'('
 	;
@@ -18,15 +14,11 @@ LPAREN
 LBRACK
 	:	'['
 	;
-	
-IMPORT
-	:	'@import'
-	;
-	
+
 BlockStart
 	:	'{'
 	;
-	
+
 RPAREN
 	:	')'
 	;
@@ -39,6 +31,18 @@ BlockEnd
 	:	'}'
 	;
 	
+GT
+	:	'>'
+	;
+	
+TIL
+	:	'~'
+	;
+	
+COLON
+	:	':'
+	;
+	
 SEMI
 	:	';'
 	;
@@ -47,20 +51,28 @@ COMMA
 	:	','
 	;
 	
-FOR
-	:	'for'
+DOT
+	:	'.'
 	;
 	
-IN
-	:	'in'
+DOLLAR
+	:	'$'
 	;
 	
 AT
 	:	'@'
 	;
 	
-GT
-	:	'>'
+PARENTREF
+  : '&'
+  ;
+  
+HASH
+	:	'#'
+	;
+	
+COLONCOLON
+	:	'::'
 	;
 	
 PLUS
@@ -71,45 +83,27 @@ TIMES
 	: '*'
 	;
 	
-HASH
-	:	'#'
-	;
-	
-DOT
-	:	'.'
-	;
-	
-COLON
-	:	':'
-	;
-	
-COLONCOLON
-	:	'::'
-	;
-	
-TIL
-	:	'~'
-	;
-	
-PIPE
-	:	'|'
+EQ
+	:	'='
 	;
 	
 PIPE_EQ
-   : '|='
-   ;
+  : '|='
+  ;
    
 TILD_EQ
-   : '~='
-   ;
-   
-Unit
-	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz')
+  : '~='
+  ;
+
+// URLs
+IMPORT
+	:	'@import'
 	;
 	
-PARENTREF
-   : '&'
-   ;
+// Loops
+FOR
+	:	'foreach'
+	;
 	
 // Tokens
 Identifier
@@ -120,7 +114,7 @@ Identifier
 fragment STRING
 	:	'"' (~ ('"' | '\n' | '\r'))* '"' | '\'' (~ ('\'' | '\n' | '\r'))* '\''
 	;
-	
+
 StringLiteral
 	:	STRING
 	;

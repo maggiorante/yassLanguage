@@ -17,6 +17,9 @@ import java.util.HashMap;
 HashMap memory = new HashMap();
 }
 
+// ----------------------------------------------------------------------------------------
+
+// This is the "start rule".
 stylesheet
 	: statement*
 	;
@@ -25,12 +28,31 @@ statement
   : ruleset
   ;
 
-ruleset
-	:	^(RULE selectors ruleset*)
-	;
-	
-// Selector
+// ----------------------------------------------------------------------------------------
 
+// Style blocks
+
+ruleset
+	:	^(RULE s=selectors block[$s.sel])
+	;
+
+block [String parentSel]
+	scope
+	{
+		String parent;
+	}
+	@init
+	{
+		System.out.println($parentSel + "{\n");
+		System.out.println("}\n");
+		$block::parent = $parentSel;
+	}
+	:	^(BLOCK ruleset*)
+	;
+
+// ----------------------------------------------------------------------------------------
+
+// Selector
 selectors returns [String sel]
 	scope
 	{
@@ -43,7 +65,6 @@ selectors returns [String sel]
 	@after
 	{
 		$sel = $selectors::sb.toString();
-		System.out.println($sel);
 	}
 	: selector (COMMA {$selectors::sb.append(", ");} selector )*
 	;
@@ -59,8 +80,10 @@ selector
 	}
 	: element+
 	;
+	
+// ----------------------------------------------------------------------------------------
 
-// Elem START
+// Elem
 element
 	@after
 	{
@@ -68,12 +91,10 @@ element
 	}
 	: selectorPrefix Identifier {$selectors::sb.append($Identifier.text);}
 	| Identifier {$selectors::sb.append($selector::isFirst ? "" : " ").append($Identifier.text);}
-	| TIMES {$selectors::sb.append($TIMES.text);}
-	| PARENTREF {$selectors::sb.append($PARENTREF.text);}
+	| TIMES {$selectors::sb.append($selector::isFirst ? "" : " ").append($TIMES.text);}
+	| PARENTREF {$selectors::sb.append($block::parent);}
 	;
 	
 selectorPrefix
    : i=(GT | PLUS | TIL | HASH | DOT) {$selectors::sb.append($i.text);}
    ;
-
-// Elem END

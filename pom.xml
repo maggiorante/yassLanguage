@@ -120,6 +120,24 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>copy-stg-debug</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/antlrworks/</directory>
+                                    <includes>
+                                        <include>YassTree.stg</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>copy-g</id>
                         <phase>initialize</phase>
                         <goals>

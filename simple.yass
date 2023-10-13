@@ -1,3 +1,5 @@
-.ciao div, .prova, provolone {
+.ciao {
+  & .prova {
 
+  }
 }

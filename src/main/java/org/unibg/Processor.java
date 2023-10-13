@@ -7,6 +7,8 @@ import org.antlr.stringtemplate.*;
 
 public class Processor {
 
+    private boolean DEBUG = false;
+
     public static void main(String[] args)
     throws IOException, RecognitionException {
         if (args.length == 1) { // name of file to process passed in
@@ -21,8 +23,10 @@ public class Processor {
     private void processFile(String filePath)
     throws IOException, RecognitionException {
         CommonTree ast = getAST(new FileReader(filePath));
-        //System.err.println("The AST is:"); // for debugging
-        //System.err.println(ast.toStringTree()); // for debugging
+        if (DEBUG) {
+            System.err.println("The AST is:"); // for debugging
+            System.err.println(ast.toStringTree()); // for debugging
+        }
         processAST(ast);
     }
 
