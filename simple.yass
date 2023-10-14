@@ -1,5 +1,11 @@
-.ciao {
-  & .prova {
+background_color = "red";
+text_color = "white";
+font_size = "1px";
 
+.main {
+  background-color: ${background_color};
+  & p {
+    font-size: ${font_size};
   }
+  color: ${text_color};
 }

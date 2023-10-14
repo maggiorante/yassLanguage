@@ -100,9 +100,21 @@ IMPORT
 	:	'@import'
 	;
 	
+IMPORTANT
+  : '!important'
+  ;
+	
 // Loops
 FOR
 	:	'foreach'
+	;
+	
+QUOTE
+	: '\''
+	;
+
+QUOTEQUOTE
+	:	'"'
 	;
 	
 // Tokens
@@ -116,11 +128,11 @@ fragment STRING
 	;
 
 StringLiteral
-	:	STRING
+	:	STRING {setText(getText().substring(1, getText().length()-1));}
 	;
 	
 Number
-	:	'-' (('0' .. '9')* '.')? ('0' .. '9') + | (('0' .. '9')* '.')? ('0' .. '9') +
+	:	'-' (('0' .. '9')* '.')? ('0' .. '9')+ | (('0' .. '9')* '.')? ('0' .. '9')+
 	;
 
 Color
@@ -129,17 +141,21 @@ Color
 	
 // Single-line comments
 SL_COMMENT
-	:	'//'
-		(~('\n'|'\r'))* ('\n'|'\r'('\n')?)
-		{$channel=HIDDEN;}
+	:	'//' (~('\n'|'\r'))* ('\n'|'\r'('\n')?) {$channel=HIDDEN;}
 	;
 	
 // Multiple-line comments
 COMMENT
-	:	'/*' .* '*/' { $channel = HIDDEN; }
+	:	'/*' .* '*/' {$channel = HIDDEN;}
 	;
 
 // Whitespace -- ignored
+/*
+NEWLINE
+	:	'\r'? '\n'
+	;
+*/
+
 WS
-	:	(' ' | '\t' | ('\r'? '\n'))+ { $channel = HIDDEN; }
+	:	(' '|'\t'|'\n'|'\r')+ {$channel = HIDDEN;}
 	;

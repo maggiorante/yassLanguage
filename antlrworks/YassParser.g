@@ -9,6 +9,12 @@ options {
 tokens {
 	RULE;
 	BLOCK;
+	FUNCTION;
+	PROPERTY;
+	
+	// Variables
+	VAR;
+	INTERPOLATION;
 	
 	// Attributes
 	ATTRIB;
@@ -30,12 +36,33 @@ package org.unibg;
 
 // This is the "start rule".
 stylesheet
-   : statement*
-   ;
+  : statement*
+  ;
 
 statement
-   : ruleset
-   ;
+  : ruleset
+  | variableDeclaration
+  ;
+  
+terminator
+	:	SEMI
+	;
+
+// ----------------------------------------------------------------------------------------
+
+// Variables
+variableInterpolation
+	:	DOLLAR BlockStart Identifier BlockEnd -> ^(INTERPOLATION Identifier)
+	;
+	
+variableDeclaration
+	:	Identifier EQ StringLiteral terminator -> ^(VAR Identifier StringLiteral)
+	;
+
+identifier
+	:	variableInterpolation
+	| Identifier
+	;
 
 // ----------------------------------------------------------------------------------------
 
@@ -46,7 +73,7 @@ ruleset
 
 // "backtrack = true;" needed
 block
-	:	BlockStart (property | ruleset)* BlockEnd -> ^(BLOCK ruleset*)
+	:	BlockStart (property | ruleset)* BlockEnd -> ^(BLOCK property* ruleset*)
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -66,10 +93,10 @@ selector
 
 // Element
 element
-	: selectorPrefix Identifier
-	| Identifier
-	| HASH Identifier
-	| DOT Identifier
+	: selectorPrefix identifier
+	| identifier
+	| HASH identifier
+	| DOT identifier
 	| TIMES
 	| PARENTREF
 	//| pseudo
@@ -96,21 +123,22 @@ attribRelate
 
 // Pseudo
 pseudo
-	: (COLON|COLONCOLON) Identifier -> ^(PSEUDO Identifier)
+	: (COLON|COLONCOLON) identifier -> ^(PSEUDO identifier)
 	| (COLON|COLONCOLON) function -> ^(PSEUDO function)
 	;
 	
 function
-	: Identifier LPAREN args? RPAREN -> Identifier LPAREN args* RPAREN
+	: identifier LPAREN args? RPAREN -> ^(FUNCTION identifier args*)
 	;
 	
 args
-	: expr (COMMA? expr)* -> expr*
+	: expr (COMMA? expr)*
 	;
 
 expr
 	: measurement
-	| Identifier
+	| identifier
+	| identifier IMPORTANT
 	| Color
 	| StringLiteral
 	| function
@@ -124,9 +152,5 @@ measurement
 
 // Properties
 property
-	: declaration SEMI
-	;
-  
-declaration
-	: Identifier COLON args -> Identifier args
+	: Identifier COLON args terminator -> ^(PROPERTY Identifier args)
 	;
