@@ -100,9 +100,13 @@ selectors returns [String value]
 	;
 
 selector
-	: element ((SPACE {$selectors::sb.append(" ");})? element)*
+	: nextElement+
 	;
 	
+nextElement
+	: ^(SPACED_ELEMENT {$selectors::sb.append(" ");} element)
+		| ^(ELEMENT element) 
+	;
 // ----------------------------------------------------------------------------------------
 
 // Elem

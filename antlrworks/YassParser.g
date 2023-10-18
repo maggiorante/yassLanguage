@@ -135,12 +135,12 @@ selectors
 
 // attrib* pseudo*
 selector
-	: element nextElement* attrib* pseudo? -> element nextElement*
+	: nextElement+ attrib* pseudo? -> nextElement+
 	;
 
 nextElement
 	: element
-		-> {input.get(2).getChannel() == HIDDEN}? ^(SPACED_ELEMENT element)
+		-> {input.get(1).getChannel() == HIDDEN}? ^(SPACED_ELEMENT element)
 		-> ^(ELEMENT element)
 	;
 	
