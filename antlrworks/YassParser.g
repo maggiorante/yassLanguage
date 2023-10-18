@@ -32,10 +32,35 @@ tokens {
 package org.unibg;
 }
 
+@members {
+ParserHandler ph;
+
+public ParserHandler getHandler(){
+	return ph;
+}
+
+public void displayRecognitionError(String[] tokenNames, RecognitionException e){
+	String hdr = " * " + getErrorHeader(e);
+	String msg = " - " + getErrorMessage(e, tokenNames);
+	
+	Token tk = input.LT(1);
+	
+	ph.handleError(tk, hdr, msg);
+}
+
+void initHandler(){
+	ph = new ParserHandler(input);
+}
+}
+
 // ----------------------------------------------------------------------------------------
 
 // This is the "start rule".
 stylesheet
+	@init
+	{
+		initHandler();
+	}
   : statement*
   ;
 

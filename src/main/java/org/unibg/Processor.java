@@ -4,13 +4,14 @@ import java.io.*;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 import org.antlr.stringtemplate.*;
+import org.unibg.exceptions.ParserException;
 
 public class Processor {
 
     private boolean DEBUG = false;
 
     public static void main(String[] args)
-    throws IOException, RecognitionException {
+    throws IOException, RecognitionException, ParserException {
         if (args.length == 1) { // name of file to process passed in
             new Processor().processFile(args[0]);
         } else { // more than one command-line argument
@@ -21,7 +22,7 @@ public class Processor {
 
     // Process a file
     private void processFile(String filePath)
-    throws IOException, RecognitionException {
+    throws IOException, RecognitionException, ParserException {
         CommonTree ast = getAST(new FileReader(filePath));
         if (DEBUG) {
             System.err.println("The AST is:"); // for debugging
@@ -32,10 +33,19 @@ public class Processor {
 
     // Create a parser that feeds off the token stream and returns the generated AST
     private CommonTree getAST(Reader reader)
-    throws IOException, RecognitionException {
+    throws IOException, RecognitionException, ParserException {
         YassParser tokenParser = new YassParser(getTokenStream(reader));
         YassParser.stylesheet_return parserResult = tokenParser.stylesheet(); // start rule method
         reader.close();
+        ParserHandler h = tokenParser.getHandler();
+        if (h.getErrorList().size() == 0) {
+            System.out.println("Parsing completed successfully");
+        }
+        else {
+            for (int i = 0; i < h.getErrorList().size(); i++)
+                System.err.println("Error " + (i + 1) + ": " + h.getErrorList().get(i));
+            throw new ParserException();
+        }
         return (CommonTree) parserResult.getTree();
     }
 
@@ -45,7 +55,6 @@ public class Processor {
         YassLexer lexer = new YassLexer(new ANTLRReaderStream(reader));
         return new CommonTokenStream(lexer);
     }
-
 
     // Note that setTemplateLib is a method in the generated YassTree class, not in the TreeParser superclass.
     private static void setupTemplates(YassTree treeParser)
@@ -72,4 +81,4 @@ public class Processor {
          */
     }
 
-} // end of Processor class
+}

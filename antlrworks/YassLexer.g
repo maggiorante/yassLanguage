@@ -159,3 +159,7 @@ NEWLINE
 WS
 	:	(' '|'\t'|'\n'|'\r')+ {$channel = HIDDEN;}
 	;
+	
+ERROR_TK
+	:	.
+	;

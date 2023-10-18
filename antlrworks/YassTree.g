@@ -15,6 +15,16 @@ import javafx.util.Pair;
 }
 
 @members {
+Handler h;
+
+public Handler getHandler(){
+	return h;
+}
+
+void initHandler() {
+	h = new Handler(input);
+}
+
 // Map variable name to Integer object holding value
 HashMap<String, Pair<String, String>> memory = new HashMap<String, Pair<String, String>>();
 }
@@ -23,6 +33,10 @@ HashMap<String, Pair<String, String>> memory = new HashMap<String, Pair<String, 
 
 // This is the "start rule".
 stylesheet
+	@init
+	{
+		initHandler();
+	}
 	: statement*
 	;
 

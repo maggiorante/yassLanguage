@@ -2,7 +2,7 @@ background_color = "red";
 text_color = "white";
 font_size = "1px";
 
-.main {
+.main-${text_color} {
   background-color: ${background_color};
   & p {
     font-size: ${font_size};
