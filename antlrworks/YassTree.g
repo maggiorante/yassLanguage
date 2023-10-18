@@ -100,30 +100,17 @@ selectors returns [String value]
 	;
 
 selector
-	scope
-	{
-		boolean isFirst;
-	}
-	@init
-	{
-		$selector::isFirst = true;
-	}
-	: element+
+	: element ((SPACE {$selectors::sb.append(" ");})? element)*
 	;
 	
 // ----------------------------------------------------------------------------------------
 
 // Elem
 element
-	@after
-	{
-		$selector::isFirst = false;
-	}
 	: selectorPrefix i=identifier {$selectors::sb.append($i.value);}
-	| i=identifier {$selectors::sb.append($selector::isFirst ? "" : " ").append($i.value);}
-	| HASH i=identifier {$selectors::sb.append($selector::isFirst ? "" : " ").append($HASH.text + $i.value);}
-	| DOT i=identifier {$selectors::sb.append($selector::isFirst ? "" : " ").append($DOT.text + $i.value);}
-	| TIMES {$selectors::sb.append($selector::isFirst ? "" : " ").append($TIMES.text);}
+	| i=identifier {$selectors::sb.append($i.value);}
+	| HASH i=identifier {$selectors::sb.append($HASH.text + $i.value);}
+	| TIMES {$selectors::sb.append($TIMES.text);}
 	| PARENTREF {$selectors::sb.append($block::parent);}
 	;
 	

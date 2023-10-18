@@ -8,7 +8,7 @@ import org.unibg.exceptions.ParserException;
 
 public class Processor {
 
-    private boolean DEBUG = false;
+    private boolean DEBUG = true;
 
     public static void main(String[] args)
     throws IOException, RecognitionException, ParserException {
@@ -44,7 +44,7 @@ public class Processor {
         else {
             for (int i = 0; i < h.getErrorList().size(); i++)
                 System.err.println("Error " + (i + 1) + ": " + h.getErrorList().get(i));
-            throw new ParserException();
+            //throw new ParserException();
         }
         return (CommonTree) parserResult.getTree();
     }

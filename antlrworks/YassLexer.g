@@ -2,6 +2,14 @@ lexer grammar YassLexer;
 
 @header { package org.unibg; }
 
+@members {
+public boolean isWhiteSpacesAccepted;
+
+public void setWhiteSpacesAcceptance(boolean isAccept) { isWhiteSpacesAccepted = isAccept; }
+
+public boolean isWhiteSpacesAccepted() { return isWhiteSpacesAccepted; }
+}
+
 Unit
 	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz')
 	;
@@ -119,8 +127,8 @@ QUOTEQUOTE
 	
 // Tokens
 Identifier
-	:	('_' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' ) ('_' | '-' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' | '0'..'9')*
-	|	'-' ('_' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' ) ('_' | '-' | 'a'..'z'| 'A'..'Z' | '\u0100'..'\ufffe' | '0'..'9')*
+	:	('_' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe') ('_' | '-' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe' | '0' .. '9')* 
+	| '-' ('_' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe') ('_' | '-' | '.' | 'a' .. 'z' | 'A' .. 'Z' | '\u0100' .. '\ufffe' | '0' .. '9')*
 	;
 
 fragment STRING
@@ -156,8 +164,9 @@ NEWLINE
 	;
 */
 
+
 WS
-	:	(' '|'\t'|'\n'|'\r')+ {$channel = HIDDEN;}
+	:	(' ' | '\t'|'\n'|'\r')+ {$channel = HIDDEN;}
 	;
 	
 ERROR_TK

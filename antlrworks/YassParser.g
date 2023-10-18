@@ -22,6 +22,9 @@ tokens {
 	HASVALUE;
 	BEGINSWITH;
 	
+	SPACED_ELEMENT;
+	ELEMENT;
+	
 	// Pseudo
 	PSEUDO;
 	
@@ -51,6 +54,25 @@ public void displayRecognitionError(String[] tokenNames, RecognitionException e)
 void initHandler(){
 	ph = new ParserHandler(input);
 }
+
+ public void setWhiteSpacesAcceptance(boolean isAccept) {
+     if (input != null) {
+         YassLexer lexer = (YassLexer)input.getTokenSource();
+             if (lexer != null)
+                 lexer.setWhiteSpacesAcceptance(isAccept);
+     }
+ }
+
+    public boolean isWhiteSpacesAccepted() {
+     if (input != null) {
+             YassLexer lexer = (YassLexer)input.getTokenSource();
+             if (lexer != null)
+                 return lexer.isWhiteSpacesAccepted();
+     }
+
+        return false;
+ }
+    
 }
 
 // ----------------------------------------------------------------------------------------
@@ -60,6 +82,8 @@ stylesheet
 	@init
 	{
 		initHandler();
+		
+		setWhiteSpacesAcceptance(false);
 	}
   : statement*
   ;
@@ -111,7 +135,13 @@ selectors
 
 // attrib* pseudo*
 selector
-	: element+ attrib* pseudo? -> element+
+	: element nextElement* attrib* pseudo? -> element nextElement*
+	;
+
+nextElement
+	: element
+		-> {input.get(2).getChannel() == HIDDEN}? ^(SPACED_ELEMENT element)
+		-> ^(ELEMENT element)
 	;
 	
 // ----------------------------------------------------------------------------------------
@@ -121,7 +151,6 @@ element
 	: selectorPrefix identifier
 	| identifier
 	| HASH identifier
-	| DOT identifier
 	| TIMES
 	| PARENTREF
 	//| pseudo
