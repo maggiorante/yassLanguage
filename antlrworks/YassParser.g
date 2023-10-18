@@ -22,7 +22,7 @@ tokens {
 	HASVALUE;
 	BEGINSWITH;
 	
-	SPACED_ELEMENT;
+	SPACEDELEMENT;
 	ELEMENT;
 	
 	// Pseudo
@@ -54,25 +54,6 @@ public void displayRecognitionError(String[] tokenNames, RecognitionException e)
 void initHandler(){
 	ph = new ParserHandler(input);
 }
-
- public void setWhiteSpacesAcceptance(boolean isAccept) {
-     if (input != null) {
-         YassLexer lexer = (YassLexer)input.getTokenSource();
-             if (lexer != null)
-                 lexer.setWhiteSpacesAcceptance(isAccept);
-     }
- }
-
-    public boolean isWhiteSpacesAccepted() {
-     if (input != null) {
-             YassLexer lexer = (YassLexer)input.getTokenSource();
-             if (lexer != null)
-                 return lexer.isWhiteSpacesAccepted();
-     }
-
-        return false;
- }
-    
 }
 
 // ----------------------------------------------------------------------------------------
@@ -82,8 +63,6 @@ stylesheet
 	@init
 	{
 		initHandler();
-		
-		setWhiteSpacesAcceptance(false);
 	}
   : statement*
   ;
@@ -140,7 +119,7 @@ selector
 
 nextElement
 	: element
-		-> {input.get(1).getChannel() == HIDDEN}? ^(SPACED_ELEMENT element)
+		-> {ph.checkNextIsSpace()}? ^(SPACEDELEMENT element)
 		-> ^(ELEMENT element)
 	;
 	

@@ -44,4 +44,10 @@ public class ParserHandler {
     errMsg += " at [" + tk.getLine() + ", " + (tk.getCharPositionInLine()+1) + "] -> " + "on token '" + tk.getText() + "'";
     errorList.add(errMsg);
   }
+
+  public boolean checkNextIsSpace() {
+    Token tk = input.LT(1);
+    Token prevTk = input.get(tk.getTokenIndex()-1);
+    return prevTk.getType() == YassLexer.SPACE && tk.getType() != YassLexer.BlockStart;
+  }
 }

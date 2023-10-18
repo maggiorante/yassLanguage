@@ -85,6 +85,16 @@ public class Handler {
     return false;
   }
 
+  public void assignValue(Token n, String v) {
+    if (n != null && checkReference(n)) {
+      String name = n.getText();
+      Pair p = memory.get(name);
+      if (p != null)
+        p = new Pair(p.getKey(), v);
+      System.out.println("Hai assegnato il valore " + v + " alla variabile " + name);
+    }
+  }
+
   public String getVarValue(Token x) {
     if (x != null && checkReference(x)) {
       String name = x.getText();

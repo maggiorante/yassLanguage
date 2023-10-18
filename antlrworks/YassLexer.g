@@ -2,14 +2,6 @@ lexer grammar YassLexer;
 
 @header { package org.unibg; }
 
-@members {
-public boolean isWhiteSpacesAccepted;
-
-public void setWhiteSpacesAcceptance(boolean isAccept) { isWhiteSpacesAccepted = isAccept; }
-
-public boolean isWhiteSpacesAccepted() { return isWhiteSpacesAccepted; }
-}
-
 Unit
 	:	('%'|'px'|'cm'|'mm'|'in'|'pt'|'pc'|'em'|'ex'|'deg'|'rad'|'grad'|'ms'|'s'|'hz'|'khz')
 	;
@@ -164,9 +156,12 @@ NEWLINE
 	;
 */
 
+SPACE
+	:	' '+ {$channel = HIDDEN;}
+	;
 
 WS
-	:	(' ' | '\t'|'\n'|'\r')+ {$channel = HIDDEN;}
+	:	('\t'|'\n'|'\r')+ {$channel = HIDDEN;}
 	;
 	
 ERROR_TK

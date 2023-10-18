@@ -104,8 +104,8 @@ selector
 	;
 	
 nextElement
-	: ^(SPACED_ELEMENT {$selectors::sb.append(" ");} element)
-		| ^(ELEMENT element) 
+	: ^(SPACEDELEMENT element {$selectors::sb.append(" ");})
+	| ^(ELEMENT element)
 	;
 // ----------------------------------------------------------------------------------------
 
