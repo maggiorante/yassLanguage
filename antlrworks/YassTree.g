@@ -10,9 +10,7 @@ options {
 package org.unibg;
 import java.lang.StringBuilder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import javafx.util.Pair;
-import java.util.UUID;
 }
 
 @members {
