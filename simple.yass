@@ -1,15 +1,21 @@
 background_color = "red";
 text_color = "white";
 font_size = "1px";
+list = ["primary", "secondary"];
 
 .main p, div {
   background-color: ${background_color};
   & p {
     font-size: ${font_size};
   }
-  color: ${text_color};
 }
 
-.main-${text_color} {
-  background-color: ${background_color};
+.main-${font_size} {
+  background-color: black;
+}
+
+$foreach(list){
+  .prova {
+    background-color: ${text_color};
+  }
 }

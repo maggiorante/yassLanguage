@@ -106,7 +106,7 @@ IMPORTANT
 	
 // Loops
 FOR
-	:	'foreach'
+	:	DOLLAR 'foreach'
 	;
 	
 QUOTE

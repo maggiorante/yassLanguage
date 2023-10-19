@@ -23,7 +23,7 @@ public class Handler {
     }
   }
 
-  HashMap<String, Pair<String, String>> memory;
+  HashMap<String, Pair<String, Object>> memory;
   // ******
   List<String> errorList;
   TreeNodeStream input;
@@ -31,20 +31,27 @@ public class Handler {
   // ******
   public Handler(TreeNodeStream input) {
     this.input = input;
-    memory = new HashMap<String, Pair<String, String>>(101);
+    memory = new HashMap<String, Pair<String, Object>>(101);
+    errorList = new ArrayList<String>();
+  }
+
+  public Handler(TreeNodeStream input, HashMap<String, Pair<String, Object>> memory) {
+    this.input = input;
+    this.memory = memory;
     errorList = new ArrayList<String>();
   }
 
   // ******
   public List<String> getErrorList(){
-    return  errorList;
+    return errorList;
   }
+  public HashMap<String, Pair<String, Object>> getMemory() { return memory;}
 
-  public void handleError(Errors error, Token tk) {
+  public void handleError(Errors error, CommonTree tk) {
     String errMsg = "Semantic Error " + error;
 
     if (tk == null)
-      tk = ((CommonTree)input.LT(-1)).getToken();
+      tk = (CommonTree)input.LT(-1);
     errMsg += " at [" + tk.getLine() + ", " + (tk.getCharPositionInLine()+1) + "] -> ";
 
     switch (error) {
@@ -59,24 +66,24 @@ public class Handler {
     errorList.add(errMsg);
   }
 
-  public void declareVar (Token t, Token v) {
-    if (t!=null && v!=null) {
-      String name = v.getText();
-      Pair p = new Pair(name, t.getText());
+  public void declareVar (CommonTree identifier, Object value, String type) {
+    if (identifier!=null) {
+      String name = identifier.getText();
+      Pair p = new Pair(type, value);
       if (memory.containsKey(name))
-        handleError(Errors.DECLARED_VAR_ERROR, v);
+        handleError(Errors.DECLARED_VAR_ERROR, identifier);
       else {
         memory.put(name, p);
-        System.out.println("Declared " + name + " of type " + t.getText() + " with value ");
+        System.out.println("Declared " + name + " of type " + type + " with value " + value);
       }
     }
   }
 
-  public boolean checkReference(Token var) {
-    if (var!=null) {
-      String name = var.getText();
+  public boolean checkReference(CommonTree identifier) {
+    if (identifier!=null) {
+      String name = identifier.getText();
       if (!memory.containsKey(name))
-        handleError(Errors.UNDECLARED_VAR_ERROR, var);
+        handleError(Errors.UNDECLARED_VAR_ERROR, identifier);
       else
       {
         return true;
@@ -85,7 +92,8 @@ public class Handler {
     return false;
   }
 
-  public void assignValue(Token n, String v) {
+  /*
+  public void assignValue(CommonTree n, String v) {
     if (n != null && checkReference(n)) {
       String name = n.getText();
       Pair p = memory.get(name);
@@ -94,13 +102,14 @@ public class Handler {
       System.out.println("Hai assegnato il valore " + v + " alla variabile " + name);
     }
   }
+  */
 
-  public String getVarValue(Token x) {
-    if (x != null && checkReference(x)) {
-      String name = x.getText();
-      Pair<String, String> p = memory.get(name);
+  public Object getVarValue(CommonTree identifier) {
+    if (identifier != null && checkReference(identifier)) {
+      String name = identifier.getText();
+      Pair<String, Object> p = memory.get(name);
       return p.getValue();
     }
-    return "";
+    return null;
   }
 }

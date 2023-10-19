@@ -29,6 +29,9 @@ tokens {
 	PSEUDO;
 	
 	ASSIGNMENT;
+	
+	LIST;
+	FORLOOP;
 }
 
 @header {
@@ -70,6 +73,7 @@ stylesheet
 statement
   : ruleset
   | variableDeclaration
+  | foreach
   ;
   
 terminator
@@ -84,12 +88,28 @@ variableInterpolation
 	;
 	
 variableDeclaration
-	:	Identifier EQ StringLiteral terminator -> ^(VAR Identifier StringLiteral)
+	:	Identifier EQ variableValue terminator -> ^(VAR Identifier variableValue)
 	;
 
 identifier
 	:	variableInterpolation
 	| Identifier
+	;
+	
+variableValue
+	:	StringLiteral
+	| list
+	;
+
+list
+	:	LBRACK StringLiteral (COMMA StringLiteral)* RBRACK -> ^(LIST StringLiteral+)
+	;
+
+// ----------------------------------------------------------------------------------------
+
+// For loop
+foreach
+	:	FOR LPAREN Identifier RPAREN BlockStart ruleset BlockEnd-> ^(FORLOOP FOR Identifier ruleset)
 	;
 
 // ----------------------------------------------------------------------------------------

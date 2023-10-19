@@ -12,6 +12,7 @@ import java.lang.StringBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javafx.util.Pair;
+import java.util.UUID;
 }
 
 @members {
@@ -25,8 +26,11 @@ void initHandler() {
 	h = new Handler(input);
 }
 
-// Map variable name to Integer object holding value
-HashMap<String, Pair<String, String>> memory = new HashMap<String, Pair<String, String>>();
+private YassTree (CommonTree node, HashMap<String, Pair<String, Object>> memory)
+ {
+   this(new CommonTreeNodeStream (node));
+   h = new Handler(input, memory);
+ }
 }
 
 // ----------------------------------------------------------------------------------------
@@ -43,22 +47,56 @@ stylesheet
 statement
   : ruleset
   | variableDeclaration
+  | foreach
   ;
 
 // ----------------------------------------------------------------------------------------
 
 // Variables
 variableInterpolation returns [String value]
-	:	^(INTERPOLATION Identifier) {$value=memory.get($Identifier.text).getValue();}
+	:	^(INTERPOLATION Identifier) {$value=(String)h.getVarValue($Identifier);}
 	;
 	
 variableDeclaration
-	:	^(VAR Identifier StringLiteral) {memory.put($Identifier.text, new Pair("string", $StringLiteral.text));}
+	:	^(VAR Identifier v=variableValue) {h.declareVar($Identifier, $v.value, $v.type);}
 	;
 
 identifier returns [String value]
 	:	v=variableInterpolation {$value=$v.value;}
 	| Identifier {$value=$Identifier.text;}
+	;
+
+variableValue returns [Object value, String type]
+	:	StringLiteral {$value = $StringLiteral.text; $type = "string";}
+	| l=list {$value = $l.items; $type = "list";}
+	;
+
+list returns [List items]
+	@init{
+		List<String> itemsLocal = new ArrayList<String>();
+	}
+	@after{
+		$items = itemsLocal;
+	}
+	:	^(LIST (StringLiteral {itemsLocal.add($StringLiteral.text);})+)
+	;
+	
+// ----------------------------------------------------------------------------------------
+
+// For loop
+foreach
+	// https://stackoverflow.com/questions/5172181/loops-iterating-in-antlr
+	@init{
+		List items = new ArrayList();
+	}
+	:	^(FORLOOP FOR Identifier {items = (List)h.getVarValue($Identifier);} r=.)
+	{
+		for (int i=0; i<items.size(); i++)
+    {
+      YassTree ruleset = new YassTree(r, h.getMemory());
+      ruleset.ruleset();
+    }
+	}
 	;
 
 // ----------------------------------------------------------------------------------------

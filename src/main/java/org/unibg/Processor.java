@@ -8,7 +8,7 @@ import org.unibg.exceptions.ParserException;
 
 public class Processor {
 
-    private boolean DEBUG = true;
+    private boolean DEBUG = false;
 
     public static void main(String[] args)
     throws IOException, RecognitionException, ParserException {
