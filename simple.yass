@@ -1,21 +1,32 @@
-background_color = "red";
-text_color = "white";
-font_size = "1px";
 list = ["primary", "secondary"];
+dict = {
+  "color": "black",
+  "background-color": "white"
+};
 
-.main p, div {
-  background-color: ${background_color};
-  & p {
-    font-size: ${font_size};
+$foreach(list) {
+  .prova-${value} {
+    background-color: black;
   }
 }
 
-.main-${font_size} {
-  background-color: black;
-}
+list = ["primario", "secondario"];
 
-$foreach(list){
-  .prova {
-    background-color: ${text_color};
+$foreach(list) {
+  .prova-${value} {
+    background-color: black;
   }
 }
+
+$genera-btn(nome, dict, rounded) {
+  .${nome} {
+    $foreach(dict) {
+      $if(rounded and key == "border-radius"){
+        border-radius: 1px;
+      } else {
+        ${key}: ${value};
+      }
+    }
+  }
+}
+

@@ -3,15 +3,13 @@ package org.unibg;
 import java.io.*;
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
-import org.antlr.stringtemplate.*;
-import org.unibg.exceptions.ParserException;
 
 public class Processor {
 
     private boolean DEBUG = false;
 
     public static void main(String[] args)
-    throws IOException, RecognitionException, ParserException {
+    throws IOException, RecognitionException {
         if (args.length == 1) { // name of file to process passed in
             new Processor().processFile(args[0]);
         } else { // more than one command-line argument
@@ -22,8 +20,11 @@ public class Processor {
 
     // Process a file
     private void processFile(String filePath)
-    throws IOException, RecognitionException, ParserException {
+    throws IOException, RecognitionException {
         CommonTree ast = getAST(new FileReader(filePath));
+        if (ast == null) {
+            return;
+        }
         if (DEBUG) {
             System.err.println("The AST is:"); // for debugging
             System.err.println(ast.toStringTree()); // for debugging
@@ -33,20 +34,19 @@ public class Processor {
 
     // Create a parser that feeds off the token stream and returns the generated AST
     private CommonTree getAST(Reader reader)
-    throws IOException, RecognitionException, ParserException {
+    throws IOException, RecognitionException {
         YassParser tokenParser = new YassParser(getTokenStream(reader));
         YassParser.stylesheet_return parserResult = tokenParser.stylesheet(); // start rule method
         reader.close();
         ParserHandler h = tokenParser.getHandler();
         if (h.getErrorList().size() == 0) {
             System.out.println("Parsing completed successfully");
+            return (CommonTree) parserResult.getTree();
         }
         else {
-            for (int i = 0; i < h.getErrorList().size(); i++)
-                System.err.println("Error " + (i + 1) + ": " + h.getErrorList().get(i));
-            //throw new ParserException();
+            System.err.println("Parsing failed! " + h.getErrorList().get(0));
+            return null;
         }
-        return (CommonTree) parserResult.getTree();
     }
 
     // Create a lexer that feeds from a stream
@@ -72,6 +72,13 @@ public class Processor {
     throws IOException, RecognitionException {
         YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
         treeParser.stylesheet();
+        Handler h = treeParser.getHandler();
+        if (h.getErrorList().size() == 0) {
+            System.out.println("Translation completed successfully");
+        }
+        else {
+            System.err.println("Translation failed! " + h.getErrorList().get(0));
+        }
         /*
         // If using string templates
         YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));

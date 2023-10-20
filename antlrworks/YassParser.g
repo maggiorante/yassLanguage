@@ -32,6 +32,8 @@ tokens {
 	
 	LIST;
 	FORLOOP;
+	DICT;
+	DICTITEM;
 }
 
 @header {
@@ -45,6 +47,7 @@ public ParserHandler getHandler(){
 	return ph;
 }
 
+
 public void displayRecognitionError(String[] tokenNames, RecognitionException e){
 	String hdr = " * " + getErrorHeader(e);
 	String msg = " - " + getErrorMessage(e, tokenNames);
@@ -53,6 +56,7 @@ public void displayRecognitionError(String[] tokenNames, RecognitionException e)
 	
 	ph.handleError(tk, hdr, msg);
 }
+
 
 void initHandler(){
 	ph = new ParserHandler(input);
@@ -83,7 +87,7 @@ terminator
 // ----------------------------------------------------------------------------------------
 
 // Variables
-variableInterpolation
+fragment variableInterpolation
 	:	DOLLAR BlockStart Identifier BlockEnd -> ^(INTERPOLATION Identifier)
 	;
 	
@@ -91,18 +95,27 @@ variableDeclaration
 	:	Identifier EQ variableValue terminator -> ^(VAR Identifier variableValue)
 	;
 
-identifier
+fragment identifier
 	:	variableInterpolation
 	| Identifier
 	;
 	
-variableValue
+fragment variableValue
 	:	StringLiteral
 	| list
+	| dict
 	;
 
-list
+fragment list
 	:	LBRACK StringLiteral (COMMA StringLiteral)* RBRACK -> ^(LIST StringLiteral+)
+	;
+	
+fragment dict
+	:	BlockStart dictItem (COMMA dictItem)* BlockEnd -> ^(DICT dictItem+)
+	;
+	
+fragment dictItem
+	:	StringLiteral COLON StringLiteral -> ^(DICTITEM StringLiteral StringLiteral)
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -120,7 +133,7 @@ ruleset
 	;
 
 // "backtrack = true;" needed
-block
+fragment block
 	:	BlockStart (property | ruleset)* BlockEnd -> ^(BLOCK property* ruleset*)
 	;
 
@@ -128,16 +141,16 @@ block
 
 // Selector
 // Per farlo funzionare o fai così e per i selector metti il token virtuale SELECTOR oppure lo lasci senza trasformarlo in AST. Stampa l'ast da codice per capire il motivo...
-selectors
+fragment selectors
 	: selector (COMMA selector)*
 	;
 
 // attrib* pseudo*
-selector
+fragment selector
 	: nextElement+ attrib* pseudo? -> nextElement+
 	;
 
-nextElement
+fragment nextElement
 	: element
 		-> {ph.checkNextIsSpace()}? ^(SPACEDELEMENT element)
 		-> ^(ELEMENT element)
@@ -146,7 +159,7 @@ nextElement
 // ----------------------------------------------------------------------------------------
 
 // Element
-element
+fragment element
 	: selectorPrefix identifier
 	| identifier
 	| HASH identifier
@@ -155,7 +168,7 @@ element
 	//| pseudo
 	;
 
-selectorPrefix
+fragment selectorPrefix
    : (GT | PLUS | TIL)
    ;
 

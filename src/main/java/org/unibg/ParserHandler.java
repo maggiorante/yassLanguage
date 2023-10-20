@@ -41,7 +41,7 @@ public class ParserHandler {
     else
       errMsg = Errors.SYNTAX_ERROR.toString();
 
-    errMsg += " at [" + tk.getLine() + ", " + (tk.getCharPositionInLine()+1) + "] -> " + "on token '" + tk.getText() + "'";
+    errMsg += " at row " + tk.getLine() + ", column " + (tk.getCharPositionInLine()+1) + " on token '" + tk.getText() + "'";
     errorList.add(errMsg);
   }
 

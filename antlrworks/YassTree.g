@@ -10,7 +10,7 @@ options {
 package org.unibg;
 import java.lang.StringBuilder;
 import java.util.ArrayList;
-import javafx.util.Pair;
+import org.unibg.utils.*;
 }
 
 @members {
@@ -24,10 +24,10 @@ void initHandler() {
 	h = new Handler(input);
 }
 
-private YassTree (CommonTree node, HashMap<String, Pair<String, Object>> memory)
+public YassTree (CommonTree node, Memory memory, List errorList)
  {
    this(new CommonTreeNodeStream (node));
-   h = new Handler(input, memory);
+   h = new Handler(input, memory, errorList);
  }
 }
 
@@ -56,7 +56,7 @@ variableInterpolation returns [String value]
 	;
 	
 variableDeclaration
-	:	^(VAR Identifier v=variableValue) {h.declareVar($Identifier, $v.value, $v.type);}
+	:	^(VAR Identifier v=variableValue) {h.declareVar($Identifier, $v.variable);}
 	;
 
 identifier returns [String value]
@@ -64,37 +64,44 @@ identifier returns [String value]
 	| Identifier {$value=$Identifier.text;}
 	;
 
-variableValue returns [Object value, String type]
-	:	StringLiteral {$value = $StringLiteral.text; $type = "string";}
-	| l=list {$value = $l.items; $type = "list";}
+variableValue returns [Variable variable]
+	: StringLiteral {variable = new Variable(Variable.Types.STRING, $StringLiteral.text);}
+	|	l=list {variable = new Variable(Variable.Types.LIST, $l.items);}
+	| d=dict {variable = new Variable(Variable.Types.DICT, $d.dictionary);}
 	;
 
-list returns [List items]
+fragment list returns [List items]
 	@init{
 		List<String> itemsLocal = new ArrayList<String>();
 	}
 	@after{
-		$items = itemsLocal;
+		items = itemsLocal;
 	}
 	:	^(LIST (StringLiteral {itemsLocal.add($StringLiteral.text);})+)
+	;
+	
+fragment dict returns [Dict dictionary]
+	@init{
+		Dict dictionaryLocal = new Dict();
+	}
+	@after{
+		dictionary = dictionaryLocal;
+	}
+	:	^(DICT (dictItem[dictionaryLocal])+)
+	;
+	
+fragment dictItem [Dict dictionary]
+	@after{
+		$dictionary.put($k.text, $v.text);
+	}
+	:	^(DICTITEM k=StringLiteral v=StringLiteral)
 	;
 	
 // ----------------------------------------------------------------------------------------
 
 // For loop
 foreach
-	// https://stackoverflow.com/questions/5172181/loops-iterating-in-antlr
-	@init{
-		List items = new ArrayList();
-	}
-	:	^(FORLOOP FOR Identifier {items = (List)h.getVarValue($Identifier);} r=.)
-	{
-		for (int i=0; i<items.size(); i++)
-    {
-      YassTree ruleset = new YassTree(r, h.getMemory());
-      ruleset.ruleset();
-    }
-	}
+	:	^(FORLOOP FOR Identifier r=. {h.forLoop($Identifier, r);})
 	;
 
 // ----------------------------------------------------------------------------------------
