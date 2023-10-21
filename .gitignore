@@ -44,3 +44,4 @@ build/
 
 # PlantUML
 *.puml
+*.css
