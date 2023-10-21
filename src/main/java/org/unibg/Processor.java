@@ -6,7 +6,7 @@ import org.antlr.runtime.tree.*;
 
 public class Processor {
 
-    private boolean DEBUG = false;
+    private boolean DEBUG = true;
 
     public static void main(String[] args)
     throws IOException, RecognitionException {

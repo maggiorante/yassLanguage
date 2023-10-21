@@ -10,5 +10,5 @@ public class Mixin {
     _pair = new Pair(s, o);
   }
   public List<String> getArguments() { return _pair.getValue0(); }
-  public CommonTree getBlock() { return _pair.getValue1(); }
+  public CommonTree getBody() { return _pair.getValue1(); }
 }

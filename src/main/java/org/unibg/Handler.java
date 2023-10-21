@@ -85,13 +85,18 @@ public class Handler {
     }
     return false;
   }
-  public void callMixin(CommonTree identifier, List<CommonTree> arguments) {
+  public void callMixin(CommonTree identifier, List<Object> arguments) throws RecognitionException {
     if (checkMixinReference(identifier)) {
       String name = identifier.getText();
       Mixin m = mixins.resolve(name);
       if (arguments.size() != m.getArguments().size()) {
         handleError(Errors.MISMATCH_ARGUMENTS_MIXIN_ERROR, identifier);
       }
+      YassTree treeParser = new YassTree(m.getBody(), this);
+      for (int i=0; i<m.getArguments().size(); i++) {
+        treeParser.h.declareVirtualVar(m.getArguments().get(i), treeParser.h.getVar(((CommonTree)arguments.get(i)).getText()));
+      }
+      treeParser.ruleset();
     }
   }
   //</editor-fold>
@@ -139,6 +144,7 @@ public class Handler {
   public void forLoop(CommonTree identifier, CommonTree ruleset) throws RecognitionException {
     // https://stackoverflow.com/questions/5172181/loops-iterating-in-antlr
     Symbol iterable = getVar(identifier.getText());
+
     switch(iterable.getType()) {
       case LIST:
         List list = (List)getVarValue(identifier);

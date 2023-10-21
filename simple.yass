@@ -1,12 +1,14 @@
-list = ["primary", "secondary"];
-dict = {
-  "color": "black",
-  "background-color": "white"
-};
-value="prova";
+color = "blue";
+class = "primary";
 
-$foreach(list) {
-  .prova-${value} {
-    background-color: black;
+color2 = "red";
+class2 = "secondary";
+
+btn = (class, color) {
+  .btn-${class} {
+    color: ${color};
   }
-}
+};
+
+$btn(class, color)
+$btn(class2, color2)

@@ -51,7 +51,7 @@ COMMA
 	:	','
 	;
 	
-DOT
+fragment DOT
 	:	'.'
 	;
 	

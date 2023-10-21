@@ -80,8 +80,9 @@ stylesheet
 
 fragment statement
   : ruleset
-  | variableDeclaration
+  | variableDeclaration terminator -> variableDeclaration
   | foreach
+  | mixinCall
   ;
   
 fragment terminator
@@ -96,7 +97,7 @@ fragment variableInterpolation
 	;
 	
 variableDeclaration
-	:	Identifier EQ variableValue terminator -> ^(VAR Identifier variableValue)
+	:	Identifier EQ variableValue -> ^(VAR Identifier variableValue)
 	;
 
 fragment identifier
@@ -138,7 +139,7 @@ foreach
 
 // Mixins
 mixinCall
-	:	Mixin LPAREN Identifier (COMMA Identifier)* RPAREN terminator -> ^(MIXINCALL Mixin Identifier+)
+	:	Mixin LPAREN Identifier (COMMA Identifier)* RPAREN -> ^(MIXINCALL Mixin Identifier+)
 	;
 
 // ----------------------------------------------------------------------------------------

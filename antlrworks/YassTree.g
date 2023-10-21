@@ -46,6 +46,7 @@ statement
   : ruleset
   | variableDeclaration
   | foreach
+  | mixinCall
   ;
 
 // ----------------------------------------------------------------------------------------
@@ -116,7 +117,7 @@ foreach
 
 // Mixins
 mixinCall
-	:	^(MIXINCALL Mixin idx+=Identifier+) {}
+	:	^(MIXINCALL Mixin idx+=Identifier+ {h.callMixin($Mixin, $idx);})
 	;
 
 // ----------------------------------------------------------------------------------------
