@@ -1,12 +1,21 @@
 color = "blue";
 font_size = "1px";
-
-btn = (color, font_size) {
-  color: ${color};
-  font-size: ${font_size};
+dict = {
+  "primary": "blue",
+  "secondary": "red"
 };
 
-.class {
+btn = (color) {
   color: ${color};
-  $btn(color, font_size)
+  font-size: 1px;
+};
+
+$foreach(dict) {
+.class-${key} {
+  $btn(value)
 }
+}
+
+
+
+
