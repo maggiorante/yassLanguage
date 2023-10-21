@@ -1,14 +1,12 @@
 color = "blue";
-class = "primary";
+font_size = "1px";
 
-color2 = "red";
-class2 = "secondary";
-
-btn = (class, color) {
-  .btn-${class} {
-    color: ${color};
-  }
+btn = (color, font_size) {
+  color: ${color};
+  font-size: ${font_size};
 };
 
-$btn(class, color)
-$btn(class2, color2)
+.class {
+  color: ${color};
+  $btn(color, font_size)
+}

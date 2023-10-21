@@ -96,7 +96,7 @@ public class Handler {
       for (int i=0; i<m.getArguments().size(); i++) {
         treeParser.h.declareVirtualVar(m.getArguments().get(i), treeParser.h.getVar(((CommonTree)arguments.get(i)).getText()));
       }
-      treeParser.ruleset();
+      treeParser.mixinBody();
     }
   }
   //</editor-fold>

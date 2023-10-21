@@ -38,6 +38,7 @@ tokens {
 	MIXIN;
 	
 	MIXINCALL;
+	MIXINBODY;
 }
 
 @header {
@@ -82,7 +83,6 @@ fragment statement
   : ruleset
   | variableDeclaration terminator -> variableDeclaration
   | foreach
-  | mixinCall
   ;
   
 fragment terminator
@@ -125,7 +125,11 @@ fragment dictItem
 	;
 	
 fragment mixin
-	:	LPAREN Identifier (COMMA Identifier)* RPAREN BlockStart ruleset BlockEnd -> ^(MIXIN Identifier+ ruleset)
+	:	LPAREN Identifier (COMMA Identifier)* RPAREN BlockStart mixinBody BlockEnd -> ^(MIXIN Identifier+ mixinBody)
+	;
+	
+fragment mixinBody
+	:	property+ -> ^(MIXINBODY property+)
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -151,7 +155,7 @@ ruleset
 
 // "backtrack = true;" needed
 fragment block
-	:	(property | ruleset)* -> ^(BLOCK property* ruleset*)
+	:	(property | ruleset | mixinCall)* -> ^(BLOCK property* mixinCall* ruleset*)
 	;
 
 // ----------------------------------------------------------------------------------------

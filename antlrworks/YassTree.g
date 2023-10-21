@@ -105,6 +105,10 @@ fragment mixin returns [Mixin mixn]
 	}
 	:	^(MIXIN (Identifier {arguments.add($Identifier.text);})+ r=.) {$mixn = new Mixin(arguments, r);}
 	;
+		
+fragment mixinBody
+	: ^(MIXINBODY property+)
+	;
 	
 // ----------------------------------------------------------------------------------------
 
@@ -136,7 +140,7 @@ block [String parentSelector]
 	{
 		$block::parent = $parentSelector;
 	}
-	:	^(BLOCK {System.out.println($parentSelector + " {");} property* {System.out.println("}");} ruleset*)
+	:	^(BLOCK {System.out.println($parentSelector + " {");} property* mixinCall* {System.out.println("}");} ruleset*)
 	;
 	
 // ----------------------------------------------------------------------------------------
