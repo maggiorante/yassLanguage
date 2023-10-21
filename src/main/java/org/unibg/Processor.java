@@ -1,37 +1,43 @@
 package org.unibg;
 
 import java.io.*;
+import java.util.concurrent.Callable;
+
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
 
-public class Processor {
+import picocli.CommandLine;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-    private boolean DEBUG = true;
-
-    public static void main(String[] args)
-    throws IOException, RecognitionException {
-        if (args.length == 1) { // name of file to process passed in
-            new Processor().processFile(args[0]);
-        } else { // more than one command-line argument
-            System.err.println(
-                "usage: java -jar [lib.jar] [file-name]");
-        }
+public class Processor implements Callable<Void> {
+    @Option(names = {"-d", "--debug"}, description = "Show debugging messages.")
+    public static boolean debug = false;
+    @Parameters(index = "0", description = "The yass file to translate.")
+    private String input;
+    @Parameters(index = "1", description = "The name of the output css file.")
+    private String output;
+    public Void call() throws IOException, RecognitionException {
+        processFile();
+        return null;
     }
-
+    public static void main(String[] args) {
+        int exitCode = new CommandLine(new Processor()).execute(args);
+        System.exit(exitCode);
+    }
     // Process a file
-    private void processFile(String filePath)
+    private void processFile()
     throws IOException, RecognitionException {
-        CommonTree ast = getAST(new FileReader(filePath));
+        CommonTree ast = getAST(new FileReader(this.input));
         if (ast == null) {
             return;
         }
-        if (DEBUG) {
+        if (debug) {
             System.err.println("The AST is:"); // for debugging
             System.err.println(ast.toStringTree()); // for debugging
         }
         processAST(ast);
     }
-
     // Create a parser that feeds off the token stream and returns the generated AST
     private CommonTree getAST(Reader reader)
     throws IOException, RecognitionException {
@@ -40,7 +46,6 @@ public class Processor {
         reader.close();
         ParserHandler h = tokenParser.getHandler();
         if (h.getErrorList().size() == 0) {
-            System.out.println("Parsing completed successfully");
             return (CommonTree) parserResult.getTree();
         }
         else {
@@ -48,44 +53,28 @@ public class Processor {
             return null;
         }
     }
-
     // Create a lexer that feeds from a stream
     private CommonTokenStream getTokenStream(Reader reader)
     throws IOException {
         YassLexer lexer = new YassLexer(new ANTLRReaderStream(reader));
         return new CommonTokenStream(lexer);
     }
-
-    // Note that setTemplateLib is a method in the generated YassTree class, not in the TreeParser superclass.
-    private static void setupTemplates(YassTree treeParser)
-    throws IOException {
-        /*
-        // If using string templates
-        Reader reader = new FileReader("YassTree.stg");
-        treeParser.setTemplateLib(new StringTemplateGroup(reader));
-        reader.close();
-         */
-    }
-
     // Walk resulting tree
     public void processAST(CommonTree ast)
-    throws IOException, RecognitionException {
+    throws RecognitionException {
         YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
         treeParser.stylesheet();
         Handler h = treeParser.getHandler();
         if (h.getErrorList().size() == 0) {
-            System.out.println("Translation completed successfully");
+            File file = new File(output);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.append(h.getSb());
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
         }
-        else {
+        if (h.getErrorList().size() != 0) {
             System.err.println("Translation failed! " + h.getErrorList().get(0));
         }
-        /*
-        // If using string templates
-        YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
-        setupTemplates(treeParser);
-        YassTree.stylesheet_return result = treeParser.stylesheet();
-        System.out.println(result.getTemplate());
-         */
     }
-
 }

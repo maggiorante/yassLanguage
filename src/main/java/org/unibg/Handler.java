@@ -14,6 +14,7 @@ public class Handler {
   private final Mixins mixins;
   private final List<String> errorList;
   private final TreeNodeStream input;
+  private StringBuilder sb = new StringBuilder();
   public Handler(TreeNodeStream input) {
     this.input = input;
     symbolTable = new SymbolTable();
@@ -25,12 +26,14 @@ public class Handler {
     this.input = input;
     this.errorList = h.getErrorList();
     this.mixins = h.getMixins();
+    this.sb = h.getSb();
   }
   public List<String> getErrorList(){
     return errorList;
   }
   public Mixins getMixins() { return mixins; }
   public SymbolTable getSymbolTable() { return this.symbolTable; }
+  public StringBuilder getSb() { return this.sb; }
 
   //<editor-fold desc="Errors">
   public void handleError(Errors error, CommonTree tk) {
@@ -68,7 +71,6 @@ public class Handler {
         handleError(Errors.DECLARED_MIXIN_ERROR, identifier);
       else {
         mixins.assign(name, mixin);
-        System.out.println("Declared mixin " + name + " with arguments " + mixin.getArguments());
       }
     }
   }
@@ -109,7 +111,6 @@ public class Handler {
         handleError(Errors.DECLARED_VAR_ERROR, identifier);
       else {
         symbolTable.assign(name, symbol);
-        System.out.println("Declared " + name + " of type " + symbol.getType() + " with value " + symbol.getValue());
       }
     }
   }
@@ -172,6 +173,13 @@ public class Handler {
         handleError(Errors.NOT_ITERABLE_VAR_ERROR, identifier);
         break;
     }
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="Result">
+  public void writeLine(String string) {
+    sb.append(string);
+    sb.append(System.getProperty("line.separator"));
   }
   //</editor-fold>
 }

@@ -15,6 +15,7 @@ import org.unibg.utils.*;
 
 @members {
 Handler h;
+String outputFile;
 
 public Handler getHandler(){
 	return h;
@@ -24,11 +25,17 @@ void initHandler() {
 	h = new Handler(input);
 }
 
-public YassTree (CommonTree node, Handler h)
- {
-   this(new CommonTreeNodeStream (node));
-   this.h = new Handler(input, h);
- }
+public YassTree(CommonTree node, Handler h)
+{
+  this(new CommonTreeNodeStream(node));
+  this.h = new Handler(input, h);
+}
+
+public YassTree(CommonTree node, String outputFile)
+{
+  this(new CommonTreeNodeStream(node));
+  this.outputFile = outputFile;
+}
 }
 
 // ----------------------------------------------------------------------------------------
@@ -140,7 +147,7 @@ block [String parentSelector]
 	{
 		$block::parent = $parentSelector;
 	}
-	:	^(BLOCK {System.out.println($parentSelector + " {");} property* mixinCall* {System.out.println("}");} ruleset*)
+	:	^(BLOCK {h.writeLine($parentSelector + " {");} property* mixinCall* {h.writeLine("}");} ruleset*)
 	;
 	
 // ----------------------------------------------------------------------------------------
@@ -225,5 +232,5 @@ measurement returns [String value]
 
 // Properties
 property
-	: ^(PROPERTY i=identifier a=args) {System.out.println($i.value + ": " + $a.value + ";");}
+	: ^(PROPERTY i=identifier a=args) {h.writeLine($i.value + ": " + $a.value + ";");}
 	;
