@@ -3,30 +3,10 @@ dict = {
   "color": "black",
   "background-color": "white"
 };
+value="prova";
 
 $foreach(list) {
   .prova-${value} {
     background-color: black;
   }
 }
-
-list = ["primario", "secondario"];
-
-$foreach(list) {
-  .prova-${value} {
-    background-color: black;
-  }
-}
-
-$genera-btn(nome, dict, rounded) {
-  .${nome} {
-    $foreach(dict) {
-      $if(rounded and key == "border-radius"){
-        border-radius: 1px;
-      } else {
-        ${key}: ${value};
-      }
-    }
-  }
-}
-

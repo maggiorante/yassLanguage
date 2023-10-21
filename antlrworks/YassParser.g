@@ -30,10 +30,14 @@ tokens {
 	
 	ASSIGNMENT;
 	
+	// Variables
 	LIST;
 	FORLOOP;
 	DICT;
 	DICTITEM;
+	MIXIN;
+	
+	MIXINCALL;
 }
 
 @header {
@@ -74,13 +78,13 @@ stylesheet
   : statement*
   ;
 
-statement
+fragment statement
   : ruleset
   | variableDeclaration
   | foreach
   ;
   
-terminator
+fragment terminator
 	:	SEMI
 	;
 
@@ -104,6 +108,7 @@ fragment variableValue
 	:	StringLiteral
 	| list
 	| dict
+	| mixin
 	;
 
 fragment list
@@ -117,24 +122,35 @@ fragment dict
 fragment dictItem
 	:	StringLiteral COLON StringLiteral -> ^(DICTITEM StringLiteral StringLiteral)
 	;
+	
+fragment mixin
+	:	LPAREN Identifier (COMMA Identifier)* RPAREN BlockStart ruleset BlockEnd -> ^(MIXIN Identifier+ ruleset)
+	;
 
 // ----------------------------------------------------------------------------------------
 
 // For loop
 foreach
-	:	FOR LPAREN Identifier RPAREN BlockStart ruleset BlockEnd-> ^(FORLOOP FOR Identifier ruleset)
+	:	FOR LPAREN Identifier RPAREN BlockStart ruleset BlockEnd-> ^(FORLOOP Identifier ruleset)
+	;
+
+// ----------------------------------------------------------------------------------------
+
+// Mixins
+mixinCall
+	:	Mixin LPAREN Identifier (COMMA Identifier)* RPAREN terminator -> ^(MIXINCALL Mixin Identifier+)
 	;
 
 // ----------------------------------------------------------------------------------------
 
 // Style blocks
 ruleset
- 	: selectors block -> ^(RULE selectors block)
+ 	: selectors BlockStart block BlockEnd -> ^(RULE selectors block)
 	;
 
 // "backtrack = true;" needed
 fragment block
-	:	BlockStart (property | ruleset)* BlockEnd -> ^(BLOCK property* ruleset*)
+	:	(property | ruleset)* -> ^(BLOCK property* ruleset*)
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -175,11 +191,11 @@ fragment selectorPrefix
 // ----------------------------------------------------------------------------------------
 
 // Attribute
-attrib
+fragment attrib
 	: LBRACK Identifier (attribRelate (StringLiteral | Identifier))? RBRACK -> ^(ATTRIB Identifier (attribRelate StringLiteral* Identifier*)?)
 	;
 	
-attribRelate
+fragment attribRelate
 	: EQ -> HASVALUE
 	| TILD_EQ -> CONTAINSVALUE
 	| PIPE_EQ -> BEGINSWITH
@@ -188,20 +204,20 @@ attribRelate
 // ----------------------------------------------------------------------------------------
 
 // Pseudo
-pseudo
+fragment pseudo
 	: (COLON|COLONCOLON) identifier -> ^(PSEUDO identifier)
 	| (COLON|COLONCOLON) function -> ^(PSEUDO function)
 	;
 	
-function
+fragment function
 	: identifier LPAREN args? RPAREN -> ^(FUNCTION identifier args*)
 	;
 	
-args
+fragment args
 	: expr (COMMA? expr)*
 	;
 
-expr
+fragment expr
 	: measurement
 	| identifier
 	| identifier IMPORTANT
@@ -210,7 +226,7 @@ expr
 	| function
 	;
 
-measurement
+fragment measurement
   : Number Unit?
   ;
 

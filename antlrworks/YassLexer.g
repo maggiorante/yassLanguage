@@ -139,6 +139,10 @@ Color
 	:	'#' ('0'..'9'|'a'..'f'|'A'..'F')+
 	;
 	
+Mixin
+	:	DOLLAR Identifier {setText(getText().substring(1, getText().length()));}
+	;
+	
 // Single-line comments
 SL_COMMENT
 	:	'//' (~('\n'|'\r'))* ('\n'|'\r'('\n')?) {$channel=HIDDEN;}

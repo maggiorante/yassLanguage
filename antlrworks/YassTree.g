@@ -24,10 +24,10 @@ void initHandler() {
 	h = new Handler(input);
 }
 
-public YassTree (CommonTree node, Memory memory, List errorList)
+public YassTree (CommonTree node, Handler h)
  {
    this(new CommonTreeNodeStream (node));
-   h = new Handler(input, memory, errorList);
+   this.h = new Handler(input, h);
  }
 }
 
@@ -56,7 +56,7 @@ variableInterpolation returns [String value]
 	;
 	
 variableDeclaration
-	:	^(VAR Identifier v=variableValue) {h.declareVar($Identifier, $v.variable);}
+	:	^(VAR Identifier variableValue[$Identifier])
 	;
 
 identifier returns [String value]
@@ -64,10 +64,11 @@ identifier returns [String value]
 	| Identifier {$value=$Identifier.text;}
 	;
 
-variableValue returns [Variable variable]
-	: StringLiteral {variable = new Variable(Variable.Types.STRING, $StringLiteral.text);}
-	|	l=list {variable = new Variable(Variable.Types.LIST, $l.items);}
-	| d=dict {variable = new Variable(Variable.Types.DICT, $d.dictionary);}
+variableValue [CommonTree identifier]
+	: StringLiteral {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $StringLiteral.text));}
+	|	l=list {h.declareVar($identifier, new Symbol(Symbol.Types.LIST, $l.items));}
+	| d=dict {h.declareVar($identifier, new Symbol(Symbol.Types.DICT, $d.dictionary));}
+	| m=mixin {h.declareMixin($identifier, $m.mixn);}
 	;
 
 fragment list returns [List items]
@@ -97,11 +98,25 @@ fragment dictItem [Dict dictionary]
 	:	^(DICTITEM k=StringLiteral v=StringLiteral)
 	;
 	
+fragment mixin returns [Mixin mixn]
+	@init{
+		List<String> arguments = new ArrayList<String>();
+	}
+	:	^(MIXIN (Identifier {arguments.add($Identifier.text);})+ r=.) {$mixn = new Mixin(arguments, r);}
+	;
+	
 // ----------------------------------------------------------------------------------------
 
 // For loop
 foreach
-	:	^(FORLOOP FOR Identifier r=. {h.forLoop($Identifier, r);})
+	:	^(FORLOOP Identifier r=. {h.forLoop($Identifier, r);})
+	;
+
+// ----------------------------------------------------------------------------------------
+
+// Mixins
+mixinCall
+	:	^(MIXINCALL Mixin idx+=Identifier+) {}
 	;
 
 // ----------------------------------------------------------------------------------------

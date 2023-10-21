@@ -1,24 +1,56 @@
 package org.unibg;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.TreeNodeStream;
 import org.antlr.runtime.tree.CommonTree;
-import org.unibg.utils.Dict;
-import org.unibg.utils.Memory;
-import org.unibg.utils.Variable;
+import org.unibg.utils.*;
 
 public class Handler {
+  private final SymbolTable symbolTable;
+  private final Mixins mixins;
+  private final List<String> errorList;
+  private final TreeNodeStream input;
+  public Handler(TreeNodeStream input) {
+    this.input = input;
+    symbolTable = new SymbolTable();
+    errorList = new ArrayList<>();
+    mixins = new Mixins();
+  }
+  public Handler(TreeNodeStream input, Handler h) {
+    this.symbolTable = h.getSymbolTable().createScope();
+    this.input = input;
+    this.errorList = h.getErrorList();
+    this.mixins = h.getMixins();
+  }
+  public List<String> getErrorList(){
+    return errorList;
+  }
+  public Mixins getMixins() { return mixins; }
+  public SymbolTable getSymbolTable() { return this.symbolTable; }
+
+  //<editor-fold desc="Errors">
+  public void handleError(Errors error, CommonTree tk) {
+    String errMsg = error.toString();
+
+    if (tk == null)
+      tk = (CommonTree)input.LT(-1);
+    errMsg += " at row " + tk.getLine() + ", column " + (tk.getCharPositionInLine()+1) + " -> '" + tk.getText() + "'";
+
+    errorList.add(errMsg);
+  }
   public enum Errors {
     UNDECLARED_VAR_ERROR("Undeclared variable"),
     DECLARED_VAR_ERROR("Already declared variable"),
-    NOT_ITERABLE_VAR_ERROR("Variable should be an iterable LIST or MAP");
+    NOT_ITERABLE_VAR_ERROR("Variable should be an iterable LIST or MAP"),
+    DECLARED_MIXIN_ERROR("Already declared mixin"),
+    UNDECLARED_MIXIN_ERROR("Undeclared mixin"),
+    MISMATCH_ARGUMENTS_MIXIN_ERROR("The number of passed arguments when calling the mixin did not match the declared ones'");
 
-    private String friendlyName;
+    private final String friendlyName;
     Errors(String friendlyName) {
       this.friendlyName = friendlyName;
     }
@@ -26,69 +58,63 @@ public class Handler {
       return this.friendlyName;
     }
   }
+  //</editor-fold>
 
-  Memory memory;
-  // ******
-  List<String> errorList;
-  TreeNodeStream input;
-
-  // ******
-  public Handler(TreeNodeStream input) {
-    this.input = input;
-    memory = new Memory(101);
-    errorList = new ArrayList<String>();
-  }
-
-  public Handler(TreeNodeStream input, Memory memory, List errorList) {
-    this.input = input;
-    this.memory = memory;
-    this.errorList = errorList;
-  }
-
-  // ******
-  public List<String> getErrorList(){
-    return errorList;
-  }
-  public Memory getMemory() { return memory; }
-
-  public void handleError(Errors error, CommonTree tk) {
-    String errMsg = error.toString();
-
-    if (tk == null)
-      tk = (CommonTree)input.LT(-1);
-    errMsg += " at row " + tk.getLine() + ", column " + (tk.getCharPositionInLine()+1) + " -> ";
-
-    switch (error) {
-      case UNDECLARED_VAR_ERROR:
-        errMsg += "'" + tk.getText() + "'";
-        break;
-      case DECLARED_VAR_ERROR:
-        errMsg += "'" + tk.getText() + "'";
-        break;
-      case NOT_ITERABLE_VAR_ERROR:
-        errMsg += "'" + tk.getText() + "'";
-        break;
-    }
-
-    errorList.add(errMsg);
-  }
-
-  public void declareVar (CommonTree identifier, Variable variable) {
+  //<editor-fold desc="Mixins">
+  public void declareMixin (CommonTree identifier, Mixin mixin) {
     if (identifier != null) {
       String name = identifier.getText();
-      if (memory.containsKey(name))
-        handleError(Errors.DECLARED_VAR_ERROR, identifier);
+      if (mixins.defined(name))
+        handleError(Errors.DECLARED_MIXIN_ERROR, identifier);
       else {
-        memory.put(name, variable);
-        System.out.println("Declared " + name + " of type " + variable.getType() + " with value " + variable.getValue());
+        mixins.assign(name, mixin);
+        System.out.println("Declared mixin " + name + " with arguments " + mixin.getArguments());
       }
     }
   }
-
-  public boolean checkReference(CommonTree identifier) {
+  public boolean checkMixinReference(CommonTree identifier) {
     if (identifier != null) {
       String name = identifier.getText();
-      if (!memory.containsKey(name)) {
+      if (!mixins.defined(name)) {
+        handleError(Errors.UNDECLARED_MIXIN_ERROR, identifier);
+        return false;
+      }
+      else {
+        return true;
+      }
+    }
+    return false;
+  }
+  public void callMixin(CommonTree identifier, List<CommonTree> arguments) {
+    if (checkMixinReference(identifier)) {
+      String name = identifier.getText();
+      Mixin m = mixins.resolve(name);
+      if (arguments.size() != m.getArguments().size()) {
+        handleError(Errors.MISMATCH_ARGUMENTS_MIXIN_ERROR, identifier);
+      }
+    }
+  }
+  //</editor-fold>
+
+  //<editor-fold desc="Variables">
+  public void declareVar (CommonTree identifier, Symbol symbol) {
+    if (identifier != null) {
+      String name = identifier.getText();
+      if (symbolTable.defined(name))
+        handleError(Errors.DECLARED_VAR_ERROR, identifier);
+      else {
+        symbolTable.assign(name, symbol);
+        System.out.println("Declared " + name + " of type " + symbol.getType() + " with value " + symbol.getValue());
+      }
+    }
+  }
+  private void declareVirtualVar (String name, Symbol symbol) {
+      symbolTable.assign(name, symbol);
+  }
+  public boolean checkVarReference(CommonTree identifier) {
+    if (identifier != null) {
+      String name = identifier.getText();
+      if (!symbolTable.defined(name)) {
         handleError(Errors.UNDECLARED_VAR_ERROR, identifier);
         return false;
       }
@@ -98,63 +124,48 @@ public class Handler {
     }
     return false;
   }
-
   public Object getVarValue(CommonTree identifier) {
-    if (identifier != null && checkReference(identifier)) {
-      String name = identifier.getText();
-      Variable p = memory.get(name);
-      return p.getValue();
+    if (checkVarReference(identifier)) {
+      return symbolTable.resolve(identifier.getText()).getValue();
     }
     return null;
   }
-
-  private Variable getVar(String identifier) {
-    Variable p = memory.get(identifier);
-    return p;
+  private Symbol getVar(String identifier) {
+    return symbolTable.resolve(identifier);
   }
+  //</editor-fold>
 
+  //<editor-fold desc="For">
   public void forLoop(CommonTree identifier, CommonTree ruleset) throws RecognitionException {
     // https://stackoverflow.com/questions/5172181/loops-iterating-in-antlr
-    Variable iterable = getVar(identifier.getText());
-    switch(iterable.getKey()) {
+    Symbol iterable = getVar(identifier.getText());
+    switch(iterable.getType()) {
       case LIST:
         List list = (List)getVarValue(identifier);
-        Variable oldListValue = getVar("value");
 
-        for (int i=0; i<list.size(); i++)
-        {
-          YassTree treeParser = new YassTree(ruleset, memory, errorList);
-          treeParser.h.getMemory().put("value", new Variable(Variable.Types.STRING, list.get(i)));
+        for (Object o : list) {
+          YassTree treeParser = new YassTree(ruleset, this);
+          treeParser.h.declareVirtualVar("value", new Symbol(Symbol.Types.STRING, o));
           treeParser.ruleset();
         }
 
-        if (oldListValue != null) {
-          memory.put("value", oldListValue);
-        }
         break;
       case DICT:
         Dict dict = (Dict)getVarValue(identifier);
-        Variable oldDictValue = getVar("value");
-        Variable oldDictKey = getVar("key");
 
         for (Map.Entry entry : dict.entrySet())
         {
-          YassTree treeParser = new YassTree(ruleset, memory, errorList);
-          treeParser.h.getMemory().put("key", new Variable(Variable.Types.STRING, entry.getKey()));
-          treeParser.h.getMemory().put("value", new Variable(Variable.Types.STRING, entry.getValue()));
+          YassTree treeParser = new YassTree(ruleset, this);
+          treeParser.h.declareVirtualVar("key", new Symbol(Symbol.Types.STRING, entry.getKey()));
+          treeParser.h.declareVirtualVar("value", new Symbol(Symbol.Types.STRING, entry.getValue()));
           treeParser.ruleset();
         }
 
-        if (oldDictValue != null) {
-          memory.put("value", oldDictValue);
-        }
-        if (oldDictKey != null) {
-          memory.put("key", oldDictKey);
-        }
         break;
       default:
         handleError(Errors.NOT_ITERABLE_VAR_ERROR, identifier);
         break;
     }
   }
+  //</editor-fold>
 }
