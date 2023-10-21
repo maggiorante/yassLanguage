@@ -72,7 +72,7 @@ variableValue [CommonTree identifier]
 	| m=mixin {h.declareMixin($identifier, $m.mixn);}
 	;
 
-fragment list returns [List items]
+list returns [List items]
 	@init{
 		List<String> itemsLocal = new ArrayList<String>();
 	}
@@ -82,7 +82,7 @@ fragment list returns [List items]
 	:	^(LIST (StringLiteral {itemsLocal.add($StringLiteral.text);})+)
 	;
 	
-fragment dict returns [Dict dictionary]
+dict returns [Dict dictionary]
 	@init{
 		Dict dictionaryLocal = new Dict();
 	}
@@ -92,21 +92,21 @@ fragment dict returns [Dict dictionary]
 	:	^(DICT (dictItem[dictionaryLocal])+)
 	;
 	
-fragment dictItem [Dict dictionary]
+dictItem [Dict dictionary]
 	@after{
 		$dictionary.put($k.text, $v.text);
 	}
 	:	^(DICTITEM k=StringLiteral v=StringLiteral)
 	;
 	
-fragment mixin returns [Mixin mixn]
+mixin returns [Mixin mixn]
 	@init{
 		List<String> arguments = new ArrayList<String>();
 	}
 	:	^(MIXIN (Identifier {arguments.add($Identifier.text);})+ r=.) {$mixn = new Mixin(arguments, r);}
 	;
 		
-fragment mixinBody
+mixinBody
 	: ^(MIXINBODY property+)
 	;
 	

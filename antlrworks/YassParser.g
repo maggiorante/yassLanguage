@@ -79,20 +79,20 @@ stylesheet
   : statement*
   ;
 
-fragment statement
+statement
   : ruleset
   | variableDeclaration terminator -> variableDeclaration
   | foreach
   ;
   
-fragment terminator
+terminator
 	:	SEMI
 	;
 
 // ----------------------------------------------------------------------------------------
 
 // Variables
-fragment variableInterpolation
+variableInterpolation
 	:	DOLLAR BlockStart Identifier BlockEnd -> ^(INTERPOLATION Identifier)
 	;
 	
@@ -100,35 +100,35 @@ variableDeclaration
 	:	Identifier EQ variableValue -> ^(VAR Identifier variableValue)
 	;
 
-fragment identifier
+identifier
 	:	variableInterpolation
 	| Identifier
 	;
 	
-fragment variableValue
+variableValue
 	:	StringLiteral
 	| list
 	| dict
 	| mixin
 	;
 
-fragment list
+list
 	:	LBRACK StringLiteral (COMMA StringLiteral)* RBRACK -> ^(LIST StringLiteral+)
 	;
 	
-fragment dict
+dict
 	:	BlockStart dictItem (COMMA dictItem)* BlockEnd -> ^(DICT dictItem+)
 	;
 	
-fragment dictItem
+dictItem
 	:	StringLiteral COLON StringLiteral -> ^(DICTITEM StringLiteral StringLiteral)
 	;
 	
-fragment mixin
+mixin
 	:	LPAREN Identifier (COMMA Identifier)* RPAREN BlockStart mixinBody BlockEnd -> ^(MIXIN Identifier+ mixinBody)
 	;
 	
-fragment mixinBody
+mixinBody
 	:	property+ -> ^(MIXINBODY property+)
 	;
 
@@ -154,7 +154,7 @@ ruleset
 	;
 
 // "backtrack = true;" needed
-fragment block
+block
 	:	(property | ruleset | mixinCall)* -> ^(BLOCK property* mixinCall* ruleset*)
 	;
 
@@ -162,16 +162,16 @@ fragment block
 
 // Selector
 // Per farlo funzionare o fai così e per i selector metti il token virtuale SELECTOR oppure lo lasci senza trasformarlo in AST. Stampa l'ast da codice per capire il motivo...
-fragment selectors
+selectors
 	: selector (COMMA selector)*
 	;
 
 // attrib* pseudo*
-fragment selector
+selector
 	: nextElement+ attrib* pseudo? -> nextElement+
 	;
 
-fragment nextElement
+nextElement
 	: element
 		-> {ph.checkNextIsSpace()}? ^(SPACEDELEMENT element)
 		-> ^(ELEMENT element)
@@ -180,7 +180,7 @@ fragment nextElement
 // ----------------------------------------------------------------------------------------
 
 // Element
-fragment element
+element
 	: selectorPrefix identifier
 	| identifier
 	| HASH identifier
@@ -189,18 +189,18 @@ fragment element
 	//| pseudo
 	;
 
-fragment selectorPrefix
+selectorPrefix
    : (GT | PLUS | TIL)
    ;
 
 // ----------------------------------------------------------------------------------------
 
 // Attribute
-fragment attrib
+attrib
 	: LBRACK Identifier (attribRelate (StringLiteral | Identifier))? RBRACK -> ^(ATTRIB Identifier (attribRelate StringLiteral* Identifier*)?)
 	;
 	
-fragment attribRelate
+attribRelate
 	: EQ -> HASVALUE
 	| TILD_EQ -> CONTAINSVALUE
 	| PIPE_EQ -> BEGINSWITH
@@ -209,20 +209,20 @@ fragment attribRelate
 // ----------------------------------------------------------------------------------------
 
 // Pseudo
-fragment pseudo
+pseudo
 	: (COLON|COLONCOLON) identifier -> ^(PSEUDO identifier)
 	| (COLON|COLONCOLON) function -> ^(PSEUDO function)
 	;
 	
-fragment function
+function
 	: identifier LPAREN args? RPAREN -> ^(FUNCTION identifier args*)
 	;
 	
-fragment args
+args
 	: expr (COMMA? expr)*
 	;
 
-fragment expr
+expr
 	: measurement
 	| identifier
 	| identifier IMPORTANT
@@ -231,7 +231,7 @@ fragment expr
 	| function
 	;
 
-fragment measurement
+measurement
   : Number Unit?
   ;
 
