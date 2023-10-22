@@ -9,36 +9,21 @@ options {
 tokens {
 	RULE;
 	BLOCK;
-	FUNCTION;
 	PROPERTY;
-	
-	// Variables
-	VAR;
-	INTERPOLATION;
-	
-	// Attributes
 	ATTRIB;
-	CONTAINSVALUE;
-	HASVALUE;
-	BEGINSWITH;
-	
 	SPACEDELEMENT;
 	ELEMENT;
-	
-	// Pseudo
 	PSEUDO;
-	
+	VAR;
+	INTERPOLATION;
 	ASSIGNMENT;
-	
-	// Variables
 	LIST;
 	FORLOOP;
 	DICT;
 	DICTITEM;
 	MIXIN;
-	
-	MIXINCALL;
 	MIXINBODY;
+	MIXINCALL;
 }
 
 @header {
@@ -107,6 +92,8 @@ identifier
 	
 variableValue
 	:	StringLiteral
+	| Color
+	| measurement
 	| list
 	| dict
 	| mixin
@@ -168,7 +155,7 @@ selectors
 
 // attrib* pseudo*
 selector
-	: nextElement+ attrib* pseudo? -> nextElement+
+	: nextElement+ attrib* pseudo? -> nextElement+ attrib* pseudo*
 	;
 
 nextElement
@@ -190,32 +177,36 @@ element
 	;
 
 selectorPrefix
-   : (GT | PLUS | TIL)
-   ;
+  : GT
+  | PLUS
+  | TIL
+  ;
 
 // ----------------------------------------------------------------------------------------
 
 // Attribute
 attrib
-	: LBRACK Identifier (attribRelate (StringLiteral | Identifier))? RBRACK -> ^(ATTRIB Identifier (attribRelate StringLiteral* Identifier*)?)
+	: LBRACK identifier (attribRelate (StringLiteral | identifier))? RBRACK -> ^(ATTRIB identifier (attribRelate StringLiteral* identifier*)?)
 	;
 	
 attribRelate
-	: EQ -> HASVALUE
-	| TILD_EQ -> CONTAINSVALUE
-	| PIPE_EQ -> BEGINSWITH
-	;	
+	: EQ
+	| TILD_EQ
+	| PIPE_EQ
+	;
 
 // ----------------------------------------------------------------------------------------
 
 // Pseudo
 pseudo
-	: (COLON|COLONCOLON) identifier -> ^(PSEUDO identifier)
-	| (COLON|COLONCOLON) function -> ^(PSEUDO function)
+	: (COLON|COLONCOLON) identifier -> ^(PSEUDO COLON* COLONCOLON* identifier)
 	;
-	
-function
-	: identifier LPAREN args? RPAREN -> ^(FUNCTION identifier args*)
+
+// ----------------------------------------------------------------------------------------
+
+// Properties
+property
+	: Identifier COLON args terminator -> ^(PROPERTY Identifier args)
 	;
 	
 args
@@ -228,16 +219,8 @@ expr
 	| identifier IMPORTANT
 	| Color
 	| StringLiteral
-	| function
 	;
 
 measurement
   : Number Unit?
   ;
-
-// ----------------------------------------------------------------------------------------
-
-// Properties
-property
-	: Identifier COLON args terminator -> ^(PROPERTY Identifier args)
-	;

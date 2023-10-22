@@ -68,6 +68,8 @@ identifier returns [String value]
 
 variableValue [CommonTree identifier]
 	: StringLiteral {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $StringLiteral.text));}
+	| Color {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $Color.text));}
+	| ms=measurement {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $ms.value));}
 	|	l=list {h.declareVar($identifier, new Symbol(Symbol.Types.LIST, $l.items));}
 	| d=dict {h.declareVar($identifier, new Symbol(Symbol.Types.DICT, $d.dictionary));}
 	| m=mixin {h.declareMixin($identifier, $m.mixn);}
@@ -164,7 +166,7 @@ selectors returns [String value]
 	;
 
 selector
-	: nextElement+
+	: nextElement+ attrib* pseudo*
 	;
 	
 nextElement
@@ -188,9 +190,27 @@ selectorPrefix
 
 // ----------------------------------------------------------------------------------------
 
+// Attribute
+attrib
+	: ^(ATTRIB {$selectors::sb.append("[");} i=identifier {$selectors::sb.append($i.value);} (attribRelate (StringLiteral {$selectors::sb.append('"').append($StringLiteral.text).append('"');})* (i=identifier {$selectors::sb.append($i.value);})*)? {$selectors::sb.append("]");})
+	;
+	
+attribRelate
+	: r=(EQ | TILD_EQ | PIPE_EQ) {$selectors::sb.append($r.text);}
+	;
+
+// ----------------------------------------------------------------------------------------
+
 // Pseudo
-function returns [String value]
-	: ^(FUNCTION i=identifier args*) {$value=$i.value + "(" + ")";}
+pseudo
+	: ^(PSEUDO (COLON {$selectors::sb.append($COLON.text);})* (COLONCOLON {$selectors::sb.append($COLONCOLON.text);})* i=identifier {$selectors::sb.append($i.value);})
+	;
+
+// ----------------------------------------------------------------------------------------
+
+// Properties
+property
+	: ^(PROPERTY i=identifier a=args) {h.writeLine($i.value + ": " + $a.value + ";");}
 	;
 	
 args returns [String value]
@@ -215,16 +235,8 @@ expr
 	| i=identifier IMPORTANT {$args::sb.append($i.value).append($IMPORTANT.text);}
 	| Color {$args::sb.append($Color.text);}
 	| StringLiteral {$args::sb.append($StringLiteral.text);}
-	| function {$args::sb.append($function.text);}
 	;
 
 measurement returns [String value]
   : Number {$value=$Number.text;} (Unit {$value += $Unit.text;})?
   ;
-
-// ----------------------------------------------------------------------------------------
-
-// Properties
-property
-	: ^(PROPERTY i=identifier a=args) {h.writeLine($i.value + ": " + $a.value + ";");}
-	;

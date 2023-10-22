@@ -1,5 +1,6 @@
 color = "blue";
 font_size = "1px";
+pseudo = "hover";
 dict = {
   "primary": "blue",
   "secondary": "red"
@@ -14,6 +15,10 @@ $foreach(dict) {
 .class-${key} {
   $btn(value)
 }
+}
+
+.main[target=${color}]:${pseudo}, .class[target][target] {
+  color: ${color};
 }
 
 

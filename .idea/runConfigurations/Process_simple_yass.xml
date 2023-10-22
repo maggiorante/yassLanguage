@@ -2,7 +2,7 @@
   <configuration default="false" name="Process simple.yass" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="org.unibg.Processor" />
     <module name="antlr3-maven-archetype" />
-    <option name="PROGRAM_PARAMETERS" value="simple.yass simple.css" />
+    <option name="PROGRAM_PARAMETERS" value="simple.yass simple.css -d" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.unibg.*" />
