@@ -94,6 +94,10 @@ PIPE_EQ
 TILD_EQ
   : '~='
   ;
+  
+GET
+	:	DOLLAR 'get'
+	;
 
 // URLs
 IMPORT

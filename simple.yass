@@ -1,24 +1,37 @@
-color = "blue";
-font_size = "1px";
+colors = {
+  "blue": "blue",
+  "red": #FF0000
+};
+blue = "blue";
+font_size = 1px;
 pseudo = "hover";
+primary_color = $get(colors, "red");
+sizes = [200px, 300px, 400px, 500px];
+main_size = $get(sizes, 2);
+
 dict = {
-  "primary": "blue",
-  "secondary": "red"
+  "primary": #FFFFFF,
+  "secondary": 3
 };
 
 btn = (color) {
-  color: ${color};
+  color: ${blue};
   font-size: 1px;
 };
 
 $foreach(dict) {
-.class-${key} {
+.${key} {
   $btn(value)
 }
 }
 
-.main[target=${color}]:${pseudo}, .class[target][target] {
-  color: ${color};
+.btn-primary {
+  color: ${primary_color};
+  width: ${main_size};
+}
+
+.main[target]:${pseudo}, .class[target][target] {
+  color: ${blue};
 }
 
 

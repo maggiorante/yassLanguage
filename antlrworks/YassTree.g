@@ -63,26 +63,33 @@ variableDeclaration
 
 identifier returns [String value]
 	:	v=variableInterpolation {$value=$v.value;}
+	| g=get {$value=$g.value;}
 	| Identifier {$value=$Identifier.text;}
 	;
 
 variableValue [CommonTree identifier]
-	: StringLiteral {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $StringLiteral.text));}
-	| Color {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $Color.text));}
-	| ms=measurement {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $ms.value));}
-	|	l=list {h.declareVar($identifier, new Symbol(Symbol.Types.LIST, $l.items));}
+	: va=variableAtom {h.declareVar($identifier, new Symbol(Symbol.Types.STRING, $va.value));}
+	| l=list {h.declareVar($identifier, new Symbol(Symbol.Types.LIST, $l.items));}
 	| d=dict {h.declareVar($identifier, new Symbol(Symbol.Types.DICT, $d.dictionary));}
 	| m=mixin {h.declareMixin($identifier, $m.mixn);}
+	;
+	
+variableAtom returns [String value]
+	: StringLiteral {$value = $StringLiteral.text;}
+	| Color {$value = $Color.text;}
+	| ms=measurement {$value = $ms.value;}
+	| vi=variableInterpolation {$value = $vi.value;}
+	| g=get {$value = $g.value;}
 	;
 
 list returns [List items]
 	@init{
-		List<String> itemsLocal = new ArrayList<String>();
+		List<Object> itemsLocal = new ArrayList<Object>();
 	}
 	@after{
 		items = itemsLocal;
 	}
-	:	^(LIST (StringLiteral {itemsLocal.add($StringLiteral.text);})+)
+	:	^(LIST (va=variableAtom {itemsLocal.add($va.value);})+)
 	;
 	
 dict returns [Dict dictionary]
@@ -97,9 +104,9 @@ dict returns [Dict dictionary]
 	
 dictItem [Dict dictionary]
 	@after{
-		$dictionary.put($k.text, $v.text);
+		$dictionary.put($k.text, $va.value);
 	}
-	:	^(DICTITEM k=StringLiteral v=StringLiteral)
+	:	^(DICTITEM k=StringLiteral va=variableAtom)
 	;
 	
 mixin returns [Mixin mixn]
@@ -111,6 +118,14 @@ mixin returns [Mixin mixn]
 		
 mixinBody
 	: ^(MIXINBODY property+)
+	;
+	
+// ----------------------------------------------------------------------------------------
+
+// Iterable get
+get returns [String value]
+	: ^(ITERGET e=Identifier i=StringLiteral) {$value=h.getValueAtPosition($e, $i);}
+	| ^(ITERGET e=Identifier i=Number) {$value=h.getValueAtPosition($e, $i);}
 	;
 	
 // ----------------------------------------------------------------------------------------

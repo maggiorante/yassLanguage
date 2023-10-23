@@ -130,6 +130,16 @@ public class Handler {
     }
     return false;
   }
+  public boolean checkVarReference(CommonTree identifier, Symbol.Types type) {
+    if (checkVarReference(identifier)) {
+      String name = identifier.getText();
+      Symbol sym = symbolTable.resolve(name);
+      if (sym.getType() == type) {
+        return true;
+      }
+    }
+    return false;
+  }
   public Object getVarValue(CommonTree identifier) {
     if (checkVarReference(identifier)) {
       return symbolTable.resolve(identifier.getText()).getValue();
@@ -138,6 +148,20 @@ public class Handler {
   }
   private Symbol getVar(String identifier) {
     return symbolTable.resolve(identifier);
+  }
+  public String getValueAtPosition(CommonTree element, CommonTree index) {
+    if (index.getType() == YassParser.Number) {
+      if(checkVarReference(element, Symbol.Types.LIST)) {
+        List<String> sym = (List)symbolTable.resolve(element.getText()).getValue();
+        return sym.get(Integer.parseInt(index.getText()));
+      }
+    } else if (index.getType() == YassParser.StringLiteral) {
+      if(checkVarReference(element, Symbol.Types.DICT)) {
+        Dict sym = (Dict)symbolTable.resolve(element.getText()).getValue();
+        return sym.get(index.getText());
+      }
+    }
+    return null;
   }
   //</editor-fold>
 

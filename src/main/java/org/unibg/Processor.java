@@ -65,8 +65,9 @@ public class Processor implements Callable<Void> {
         YassTree treeParser = new YassTree(new CommonTreeNodeStream(ast));
         treeParser.stylesheet();
         Handler h = treeParser.getHandler();
+        File file = new File(output);
+        file.delete();
         if (h.getErrorList().size() == 0) {
-            File file = new File(output);
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 writer.append(h.getSb());
             } catch (IOException e) {

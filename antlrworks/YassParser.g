@@ -24,6 +24,7 @@ tokens {
 	MIXIN;
 	MIXINBODY;
 	MIXINCALL;
+	ITERGET;
 }
 
 @header {
@@ -87,20 +88,27 @@ variableDeclaration
 
 identifier
 	:	variableInterpolation
+	| get
 	| Identifier
 	;
 	
 variableValue
-	:	StringLiteral
-	| Color
-	| measurement
+	:	variableAtom
 	| list
 	| dict
 	| mixin
 	;
+	
+variableAtom
+	: StringLiteral
+	| Color
+	| measurement
+	| variableInterpolation
+	| get
+	;
 
 list
-	:	LBRACK StringLiteral (COMMA StringLiteral)* RBRACK -> ^(LIST StringLiteral+)
+	:	LBRACK variableAtom (COMMA variableAtom)* RBRACK -> ^(LIST variableAtom+)
 	;
 	
 dict
@@ -108,7 +116,7 @@ dict
 	;
 	
 dictItem
-	:	StringLiteral COLON StringLiteral -> ^(DICTITEM StringLiteral StringLiteral)
+	:	StringLiteral COLON variableAtom -> ^(DICTITEM StringLiteral variableAtom)
 	;
 	
 mixin
@@ -117,6 +125,14 @@ mixin
 	
 mixinBody
 	:	property+ -> ^(MIXINBODY property+)
+	;
+	
+// ----------------------------------------------------------------------------------------
+
+// Iterable get
+get
+	:	GET LPAREN Identifier COMMA StringLiteral RPAREN -> ^(ITERGET Identifier StringLiteral)
+	| GET LPAREN Identifier COMMA Number RPAREN -> ^(ITERGET Identifier Number)
 	;
 
 // ----------------------------------------------------------------------------------------
