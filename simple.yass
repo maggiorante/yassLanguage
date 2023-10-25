@@ -1,39 +1,42 @@
-colors = {
-  "blue": "blue",
-  "red": #FF0000
+white = "white";
+bg-colors = ["blue", "white", "green", "yellow", "black"];
+colors = [#E6EED6, #DDE2C6, #BBC5AA, #A72608, #090C02];
+btns = {
+  "primary": $get(colors, 0),
+  "secondary": $get(colors, 2)
 };
-blue = "blue";
+default-border = "2px solid black";
 font_size = 1px;
-pseudo = "hover";
-primary_color = $get(colors, "red");
-sizes = [200px, 300px, 400px, 500px];
-main_size = $get(sizes, 2);
+color = ${white};
+default-border_color = ${color};
 
-dict = {
-  "primary": #FFFFFF,
-  "secondary": 3
+
+btn = (background, border, font_size) {
+  background-color: ${background};
+  border: ${border};
+  font-size: ${font_size};
+  border-color: ${default-border_color};
 };
 
-btn = (color) {
-  color: ${blue};
-  font-size: 1px;
-};
-
-$foreach(dict) {
-.${key} {
-  $btn(value)
-}
-}
-
-.btn-primary {
-  color: ${primary_color};
-  width: ${main_size};
+$foreach(bg-colors) {
+    body {
+      html & {
+        background-color: ${value};
+      }
+      & .${value} {
+        background-color: ${value};
+      }
+    }
 }
 
-.main[target]:${pseudo}, .class[target][target] {
-  color: ${blue};
+$foreach(btns) {
+  .btn-${key} {
+    $btn(value, default-border, font_size)
+    &:hover {
+      border-color: ${value};
+      .main {
+        font-size: 6rem;
+      }
+    }
+  }
 }
-
-
-
-

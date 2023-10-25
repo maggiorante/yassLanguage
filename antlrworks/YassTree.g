@@ -15,14 +15,15 @@ import org.unibg.utils.*;
 
 @members {
 Handler h;
-String outputFile;
+int level;
 
 public Handler getHandler(){
 	return h;
 }
 
-void initHandler() {
+void init() {
 	h = new Handler(input);
+	level = 0;
 }
 
 public YassTree(CommonTree node, Handler h)
@@ -38,7 +39,7 @@ public YassTree(CommonTree node, Handler h)
 stylesheet
 	@init
 	{
-		initHandler();
+		init();
 	}
 	: statement*
 	;
@@ -146,6 +147,12 @@ mixinCall
 
 // Style blocks
 ruleset
+	@init{
+		level++;
+	}
+	@after{
+		level--;;
+	}
 	:	^(RULE s=selectors block[$s.value])
 	;
 
@@ -159,6 +166,7 @@ block [String parentSelector]
 		$block::parent = $parentSelector;
 	}
 	:	^(BLOCK {h.writeLine($parentSelector + " {");} property* mixinCall* {h.writeLine("}");} ruleset*)
+	| EMPTYBLOCK
 	;
 	
 // ----------------------------------------------------------------------------------------
@@ -168,13 +176,18 @@ selectors returns [String value]
 	scope
 	{
 		StringBuilder sb;
+		boolean firstTokenSet;
+		boolean firstTokenIsParentRef;
 	}
 	@init
 	{
 		$selectors::sb = new StringBuilder();
+		$selectors::firstTokenSet = false;
+		$selectors::firstTokenIsParentRef = false;
 	}
 	@after
 	{
+		if (level > 1 && !$selectors::firstTokenIsParentRef) $selectors::sb.insert(0, " ").insert(0, $block::parent);
 		$value = $selectors::sb.toString();
 	}
 	: selector (COMMA {$selectors::sb.append(", ");} selector )*
@@ -192,11 +205,16 @@ nextElement
 
 // Elem
 element
+	@after {
+		$selectors::firstTokenSet = true;
+	}
 	: selectorPrefix i=identifier {$selectors::sb.append($i.value);}
 	| i=identifier {$selectors::sb.append($i.value);}
+	| DOT i=identifier {$selectors::sb.append($DOT.text + $i.value);}
 	| HASH i=identifier {$selectors::sb.append($HASH.text + $i.value);}
 	| TIMES {$selectors::sb.append($TIMES.text);}
-	| PARENTREF {$selectors::sb.append($block::parent);}
+	| PARENTREF {$selectors::sb.append($block::parent); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true;}
+	| pseudo
 	;
 	
 selectorPrefix

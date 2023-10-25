@@ -9,6 +9,7 @@ options {
 tokens {
 	RULE;
 	BLOCK;
+	EMPTYBLOCK;
 	PROPERTY;
 	ATTRIB;
 	SPACEDELEMENT;
@@ -158,7 +159,12 @@ ruleset
 
 // "backtrack = true;" needed
 block
-	:	(property | ruleset | mixinCall)* -> ^(BLOCK property* mixinCall* ruleset*)
+	@init{
+		boolean hasContent = false;
+	}
+	: (property {hasContent=true;} | ruleset {hasContent=true;} | mixinCall {hasContent=true;})*
+	-> {hasContent}? ^(BLOCK property* mixinCall* ruleset*)
+	-> EMPTYBLOCK
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -186,10 +192,11 @@ nextElement
 element
 	: selectorPrefix identifier
 	| identifier
+	| DOT identifier
 	| HASH identifier
 	| TIMES
 	| PARENTREF
-	//| pseudo
+	| pseudo
 	;
 
 selectorPrefix
@@ -222,7 +229,7 @@ pseudo
 
 // Properties
 property
-	: Identifier COLON args terminator -> ^(PROPERTY Identifier args)
+	: identifier COLON args terminator -> ^(PROPERTY identifier args)
 	;
 	
 args
