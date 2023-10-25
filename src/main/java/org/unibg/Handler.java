@@ -51,8 +51,10 @@ public class Handler {
     NOT_ITERABLE_VAR_ERROR("Variable should be an iterable LIST or MAP"),
     DECLARED_MIXIN_ERROR("Already declared mixin"),
     UNDECLARED_MIXIN_ERROR("Undeclared mixin"),
+    NULL_VAR_ERROR("Variable has null value, this is caused by referencing a non-existent variable"),
     MISMATCH_ARGUMENTS_MIXIN_ERROR("The number of passed arguments when calling the mixin did not match the declared ones'"),
-    NOT_STRING_VAR_ERROR("Variable must be of type STRING");
+    NOT_STRING_VAR_ERROR("Variable must be of type STRING"),
+    INDEX_OUT_OF_RANGE_ERROR("The requested index is bigger than the list size");
     private final String friendlyName;
     Errors(String friendlyName) {
       this.friendlyName = friendlyName;
@@ -96,11 +98,7 @@ public class Handler {
       }
       YassTree treeParser = new YassTree(m.getBody(), this);
       for (int i=0; i<m.getArguments().size(); i++) {
-        Symbol sym = treeParser.h.getVar((CommonTree)arguments.get(i), true);
-        if (sym == null) {
-          sym = new Symbol(Symbol.Types.STRING, "");
-        }
-        treeParser.h.declareVirtualVar(m.getArguments().get(i), sym);
+          treeParser.h.declareVirtualVar(m.getArguments().get(i), treeParser.h.getVar((CommonTree)arguments.get(i), true));
       }
       treeParser.mixinBody();
     }
@@ -121,7 +119,7 @@ public class Handler {
   private void declareVirtualVar (String name, Symbol symbol) {
       symbolTable.assign(name, symbol);
   }
-  public boolean checkVarReference(CommonTree identifier) {
+  private boolean checkVarReference(CommonTree identifier) {
     if (identifier != null) {
       String name = identifier.getText();
       if (!symbolTable.defined(name)) {
@@ -134,7 +132,7 @@ public class Handler {
     }
     return false;
   }
-  public boolean checkVarReference(CommonTree identifier, Symbol.Types type) {
+  private boolean checkVarReference(CommonTree identifier, Symbol.Types type) {
     if (checkVarReference(identifier)) {
       String name = identifier.getText();
       Symbol sym = symbolTable.resolve(name);
@@ -152,9 +150,14 @@ public class Handler {
   public Object getVarValue(CommonTree identifier) {
     return getVarValue(identifier, Symbol.Types.STRING);
   }
-  public Object getVarValue(CommonTree identifier, Symbol.Types type) {
+  private Object getVarValue(CommonTree identifier, Symbol.Types type) {
     if (checkVarReference(identifier, type)) {
-      return symbolTable.resolve(identifier.getText()).getValue();
+      Symbol sym = symbolTable.resolve(identifier.getText());
+      if (sym == null) {
+        handleError(Errors.NULL_VAR_ERROR, identifier);
+        return null;
+      }
+      return sym.getValue();
     }
     return null;
   }
@@ -164,11 +167,16 @@ public class Handler {
     }
     return null;
   }
-  public String getValueAtPosition(CommonTree element, CommonTree index) {
+  public String getSpecificValue(CommonTree element, CommonTree index) {
     if (index.getType() == YassParser.Number) {
       if(checkVarReference(element, Symbol.Types.LIST)) {
         List<String> sym = (List)symbolTable.resolve(element.getText()).getValue();
-        return sym.get(Integer.parseInt(index.getText()));
+        int idx = Integer.parseInt(index.getText());
+        if (idx >= sym.size()) {
+          handleError(Errors.INDEX_OUT_OF_RANGE_ERROR, element);
+          return null;
+        }
+        return sym.get(idx);
       }
     } else if (index.getType() == YassParser.StringLiteral) {
       if(checkVarReference(element, Symbol.Types.DICT)) {
