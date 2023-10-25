@@ -51,8 +51,8 @@ public class Handler {
     NOT_ITERABLE_VAR_ERROR("Variable should be an iterable LIST or MAP"),
     DECLARED_MIXIN_ERROR("Already declared mixin"),
     UNDECLARED_MIXIN_ERROR("Undeclared mixin"),
-    MISMATCH_ARGUMENTS_MIXIN_ERROR("The number of passed arguments when calling the mixin did not match the declared ones'");
-
+    MISMATCH_ARGUMENTS_MIXIN_ERROR("The number of passed arguments when calling the mixin did not match the declared ones'"),
+    NOT_STRING_VAR_ERROR("Variable must be of type STRING");
     private final String friendlyName;
     Errors(String friendlyName) {
       this.friendlyName = friendlyName;
@@ -96,7 +96,11 @@ public class Handler {
       }
       YassTree treeParser = new YassTree(m.getBody(), this);
       for (int i=0; i<m.getArguments().size(); i++) {
-        treeParser.h.declareVirtualVar(m.getArguments().get(i), treeParser.h.getVar(((CommonTree)arguments.get(i)).getText()));
+        Symbol sym = treeParser.h.getVar((CommonTree)arguments.get(i), true);
+        if (sym == null) {
+          sym = new Symbol(Symbol.Types.STRING, "");
+        }
+        treeParser.h.declareVirtualVar(m.getArguments().get(i), sym);
       }
       treeParser.mixinBody();
     }
@@ -138,16 +142,27 @@ public class Handler {
         return true;
       }
     }
+    switch(type) {
+      case STRING:
+        handleError(Errors.NOT_STRING_VAR_ERROR, identifier);
+        break;
+    }
     return false;
   }
   public Object getVarValue(CommonTree identifier) {
-    if (checkVarReference(identifier)) {
+    return getVarValue(identifier, Symbol.Types.STRING);
+  }
+  public Object getVarValue(CommonTree identifier, Symbol.Types type) {
+    if (checkVarReference(identifier, type)) {
       return symbolTable.resolve(identifier.getText()).getValue();
     }
     return null;
   }
-  private Symbol getVar(String identifier) {
-    return symbolTable.resolve(identifier);
+  private Symbol getVar(CommonTree identifier, boolean checkType) {
+    if (!checkType || checkVarReference(identifier, Symbol.Types.STRING)) {
+      return symbolTable.resolve(identifier.getText());
+    }
+    return null;
   }
   public String getValueAtPosition(CommonTree element, CommonTree index) {
     if (index.getType() == YassParser.Number) {
@@ -168,11 +183,11 @@ public class Handler {
   //<editor-fold desc="For">
   public void forLoop(CommonTree identifier, CommonTree ruleset) throws RecognitionException {
     // https://stackoverflow.com/questions/5172181/loops-iterating-in-antlr
-    Symbol iterable = getVar(identifier.getText());
+    Symbol iterable = getVar(identifier, false);
 
     switch(iterable.getType()) {
       case LIST:
-        List list = (List)getVarValue(identifier);
+        List list = (List)getVarValue(identifier, Symbol.Types.LIST);
 
         for (Object o : list) {
           YassTree treeParser = new YassTree(ruleset, this);
@@ -182,7 +197,7 @@ public class Handler {
 
         break;
       case DICT:
-        Dict dict = (Dict)getVarValue(identifier);
+        Dict dict = (Dict)getVarValue(identifier, Symbol.Types.DICT);
 
         for (Map.Entry entry : dict.entrySet())
         {
