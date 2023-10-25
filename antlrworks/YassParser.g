@@ -237,11 +237,10 @@ args
 	;
 
 expr
-	: measurement
-	| identifier
-	| identifier IMPORTANT
-	| Color
-	| StringLiteral
+	: measurement IMPORTANT? -> measurement IMPORTANT*
+	| identifier IMPORTANT? -> identifier IMPORTANT*
+	| Color IMPORTANT? -> Color IMPORTANT*
+	| StringLiteral IMPORTANT? -> StringLiteral IMPORTANT*
 	;
 
 measurement

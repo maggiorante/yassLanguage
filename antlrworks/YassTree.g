@@ -259,15 +259,14 @@ args returns [String value]
 	{
 		$value = $args::sb.toString();
 	}
-	: expr ((COMMA {$args::sb.append($COMMA.text).append(" ");})? expr)*
+	: expr ((COMMA {$args::sb.append($COMMA.text);})? {$args::sb.append(" ");} expr)*
 	;
 
 expr
-	: m=measurement {$args::sb.append($m.value);}
-	| i=identifier {$args::sb.append($i.value);}
-	| i=identifier IMPORTANT {$args::sb.append($i.value).append($IMPORTANT.text);}
-	| Color {$args::sb.append($Color.text);}
-	| StringLiteral {$args::sb.append($StringLiteral.text);}
+	: m=measurement {$args::sb.append($m.value);} (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
+	| i=identifier {$args::sb.append($i.value);} (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
+	| Color {$args::sb.append($Color.text);}  (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
+	| StringLiteral {$args::sb.append($StringLiteral.text);}  (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
 	;
 
 measurement returns [String value]
