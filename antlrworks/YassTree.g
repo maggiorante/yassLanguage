@@ -125,8 +125,8 @@ mixinBody
 
 // Iterable get
 get returns [String value]
-	: ^(ITERGET e=Identifier i=StringLiteral) {$value=h.getValueAtPosition($e, $i);}
-	| ^(ITERGET e=Identifier i=Number) {$value=h.getValueAtPosition($e, $i);}
+	: ^(ITERGET e=Identifier i=StringLiteral) {$value=h.getSpecificValue($e, $i);}
+	| ^(ITERGET e=Identifier i=Number) {$value=h.getSpecificValue($e, $i);}
 	;
 	
 // ----------------------------------------------------------------------------------------
