@@ -45,7 +45,7 @@ public class Processor implements Callable<Void> {
         YassParser.stylesheet_return parserResult = tokenParser.stylesheet(); // start rule method
         reader.close();
         ParserHandler h = tokenParser.getHandler();
-        if (h.getErrorList().size() == 0) {
+        if (h.getErrorList().isEmpty()) {
             return (CommonTree) parserResult.getTree();
         }
         else {
@@ -67,14 +67,14 @@ public class Processor implements Callable<Void> {
         Handler h = treeParser.getHandler();
         File file = new File(output);
         file.delete();
-        if (h.getErrorList().size() == 0) {
+        if (h.getErrorList().isEmpty()) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 writer.append(h.getSb());
             } catch (IOException e) {
               throw new RuntimeException(e);
             }
         }
-        if (h.getErrorList().size() != 0) {
+        if (!h.getErrorList().isEmpty()) {
             System.err.println("Translation failed! " + h.getErrorList().get(0));
         }
     }
