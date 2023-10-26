@@ -133,14 +133,22 @@ get returns [String value]
 
 // For loop
 foreach
-	:	^(FORLOOP Identifier r=. {h.forLoop($Identifier, r);})
+	@init{
+		int inputIndex = 0;
+	}
+	:	^(FOREACH Identifier b=. {h.foreach($Identifier, b);})
+	| ^(FOREACH i=Identifier v=Identifier e=Identifier b=. {h.foreach($e, $i, $v, b);})
+	;
+	
+foreachBody
+	:	^(FOREACHBODY ruleset)
 	;
 
 // ----------------------------------------------------------------------------------------
 
 // Mixins
 mixinCall
-	:	^(MIXINCALL Mixin idx+=Identifier+ {h.callMixin($Mixin, $idx);})
+	:	^(MIXINCALL Mixin idx+=Identifier+ {h.mixinCall($Mixin, $idx);})
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -151,7 +159,7 @@ ruleset
 		level++;
 	}
 	@after{
-		level--;;
+		level--;
 	}
 	:	^(RULE s=selectors block[$s.value])
 	;
@@ -213,7 +221,7 @@ element
 	| DOT i=identifier {$selectors::sb.append($DOT.text + $i.value);}
 	| HASH i=identifier {$selectors::sb.append($HASH.text + $i.value);}
 	| TIMES {$selectors::sb.append($TIMES.text);}
-	| PARENTREF {$selectors::sb.append($block::parent); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true;}
+	| PARENTREF {if (level > 1) $selectors::sb.append($block::parent); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true; if(level <= 1) h.handleParentRefError($PARENTREF);}
 	| pseudo
 	;
 	

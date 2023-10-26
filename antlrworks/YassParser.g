@@ -19,7 +19,8 @@ tokens {
 	INTERPOLATION;
 	ASSIGNMENT;
 	LIST;
-	FORLOOP;
+	FOREACH;
+	FOREACHBODY;
 	DICT;
 	DICTITEM;
 	MIXIN;
@@ -140,7 +141,12 @@ get
 
 // For loop
 foreach
-	:	FOR LPAREN Identifier RPAREN BlockStart ruleset BlockEnd-> ^(FORLOOP Identifier ruleset)
+	:	FOR LPAREN Identifier RPAREN BlockStart foreachBody BlockEnd -> ^(FOREACH Identifier foreachBody)
+	| FOR LPAREN Identifier COMMA Identifier COLON Identifier RPAREN BlockStart foreachBody BlockEnd-> ^(FOREACH Identifier Identifier Identifier foreachBody)
+	;
+	
+foreachBody
+	:	ruleset -> ^(FOREACHBODY ruleset)
 	;
 
 // ----------------------------------------------------------------------------------------
