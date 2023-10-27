@@ -55,6 +55,18 @@ DOT
 	:	'.'
 	;
 	
+GET
+	:	DOLLAR 'get'
+	;
+
+FOR
+	:	DOLLAR 'foreach'
+	;
+
+Mixin
+	:	DOLLAR Identifier {setText(getText().substring(1, getText().length()));}
+	;
+	
 DOLLAR
 	:	'$'
 	;
@@ -94,10 +106,6 @@ PIPE_EQ
 TILD_EQ
   : '~='
   ;
-  
-GET
-	:	DOLLAR 'get'
-	;
 
 // URLs
 IMPORT
@@ -109,10 +117,6 @@ IMPORTANT
   ;
 	
 // Loops
-FOR
-	:	DOLLAR 'foreach'
-	;
-	
 QUOTE
 	: '\''
 	;
@@ -141,10 +145,6 @@ Number
 
 Color
 	:	'#' ('0'..'9'|'a'..'f'|'A'..'F')+
-	;
-	
-Mixin
-	:	DOLLAR Identifier {setText(getText().substring(1, getText().length()));}
 	;
 	
 // Single-line comments

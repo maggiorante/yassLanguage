@@ -45,8 +45,6 @@ stylesheet
 statement
   : ruleset
   | variableDeclaration
-  | foreach
-  | mixinCall
   ;
 
 // ----------------------------------------------------------------------------------------
