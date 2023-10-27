@@ -69,7 +69,7 @@ public class Processor implements Callable<Void> {
         file.delete();
         if (h.getErrorList().isEmpty()) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.append(h.getSb());
+                writer.append(h.getResult());
             } catch (IOException e) {
               throw new RuntimeException(e);
             }

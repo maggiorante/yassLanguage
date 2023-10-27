@@ -1,41 +1,28 @@
-white = "white";
-bg-colors = ["blue", "white", "green", "yellow", "black"];
-colors = [#E6EED6, #DDE2C6, #BBC5AA, #A72608, #090C02];
-btns = {
-  "primary": $get(colors, 0),
-  "secondary": $get(colors, 2)
-};
-default-border = "2px solid black";
-font_size = 1px;
-color = ${white};
-default-border_color = ${color};
-
-
-btn = (background, border, font_size) {
-  background-color: ${background};
-  border: ${border};
-  font-size: ${font_size};
-  border-color: ${default-border_color};
+colors = {
+  "primary": #E6EED6,
+  "secondary": #DDE2C6,
+  "danger": #BBC5AA,
+  "black": #A72608,
+  "white": #090C02
 };
 
-$foreach(bg-colors) {
-    body {
-      html & {
-        background-color: ${value};
-      }
-      & .${value} {
-        background-color: ${value};
-      }
-    }
-}
+sizes = {
+  "big": 200px,
+  "medium": 100px,
+  "small": 50px
+};
 
-$foreach(btns) {
-  .btn-${key} {
-    $btn(value, default-border, font_size)
-    &:hover {
-      border-color: ${value};
-      .main {
-        font-size: 6rem;
+body {
+  color: black;
+  $foreach(colors) {
+    .btn-${index} {
+      color: ${value};
+      $foreach(i, size : sizes) {
+        ${i}: ${size};
+      }
+
+      $foreach(i, size : sizes) {
+        ${i}: ${size};
       }
     }
   }

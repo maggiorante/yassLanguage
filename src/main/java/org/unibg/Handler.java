@@ -1,39 +1,88 @@
 package org.unibg;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.tree.TreeNodeStream;
 import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.TreeNodeStream;
 import org.unibg.utils.*;
+
+import java.util.*;
 
 public class Handler {
   private final SymbolTable symbolTable;
   private final Mixins mixins;
   private final List<String> errorList;
   private final TreeNodeStream input;
-  private StringBuilder sb = new StringBuilder();
+  private final List<StringBuilder> sb;
+  private final List<StringBuilder> propertiesSb;
+  private int level;
+  private StringBuilder currentSelector;
   public Handler(TreeNodeStream input) {
     this.input = input;
     symbolTable = new SymbolTable();
     errorList = new ArrayList<>();
     mixins = new Mixins();
+    sb = new ArrayList<StringBuilder>();
+    propertiesSb = new ArrayList<StringBuilder>();
+    // root element's StringBuilder, which is the one being returned at the end
+    sb.add(new StringBuilder());
+    propertiesSb.add(new StringBuilder());
+    currentSelector = new StringBuilder();
+    level = 0;
   }
   public Handler(TreeNodeStream input, Handler h) {
-    this.symbolTable = h.getSymbolTable().createScope();
+    symbolTable = h.getSymbolTable().createScope();
     this.input = input;
-    this.errorList = h.getErrorList();
-    this.mixins = h.getMixins();
-    this.sb = h.getSb();
+    errorList = h.getErrorList();
+    mixins = h.getMixins();
+    sb = h.getSb();
+    propertiesSb = h.getPropertiesSb();
+    currentSelector = h.getCurrentSelector();
+    level = h.getLevel();
   }
   public List<String> getErrorList(){
     return errorList;
   }
   public Mixins getMixins() { return mixins; }
-  public SymbolTable getSymbolTable() { return this.symbolTable; }
-  public StringBuilder getSb() { return this.sb; }
+  public SymbolTable getSymbolTable() {
+    return symbolTable;
+  }
+  public List<StringBuilder> getSb() { return sb; }
+  public List<StringBuilder> getPropertiesSb() { return propertiesSb; }
+  public StringBuilder getResult() { return sb.get(0); }
+  public int getLevel() {
+    return level;
+  }
+  public void incrementLevel() {
+    level++;
+  }
+  public void decrementLevel() {
+    level--;
+  }
+  public StringBuilder getCurrentSelector() {
+    return currentSelector;
+  }
+  public void setCurrentSelector(StringBuilder currentSelector) {
+    this.currentSelector = currentSelector;
+  }
+  public void resetCurrentSelector(int length) {
+    currentSelector.delete(length, currentSelector.length());
+  }
+  public void pushSb() {
+    propertiesSb.add(new StringBuilder());
+    sb.add(new StringBuilder());
+  }
+  public void popSb() {
+    StringBuilder mergeInto = sb.get(level - 1);
+    mergeInto.append(currentSelector);
+    mergeInto.append(" {");
+    mergeInto.append(System.getProperty("line.separator"));
+    mergeInto.append(propertiesSb.get(level));
+    mergeInto.append("}");
+    mergeInto.append(System.getProperty("line.separator"));
+    mergeInto.append(sb.get(level));
+    propertiesSb.remove(level);
+    sb.remove(level);
+  }
 
   //<editor-fold desc="Errors">
   private enum Errors {
@@ -112,7 +161,7 @@ public class Handler {
       if (arguments.size() != m.getArguments().size()) {
         handleError(Errors.MISMATCH_ARGUMENTS_MIXIN_ERROR, identifier);
       }
-      YassTree treeParser = new YassTree(m.getBody(), this);
+      YassTree treeParser = new YassTree(m.getBody(), this, -1);
       for (int i=0; i<m.getArguments().size(); i++) {
           treeParser.h.declareVirtualVar(m.getArguments().get(i), treeParser.h.getVar((CommonTree)arguments.get(i), true));
       }
@@ -220,7 +269,7 @@ public class Handler {
         List list = (List)getVarValue(element, Symbol.Types.LIST);
 
         for (int i=0; i<list.size(); i++){
-          YassTree treeParser = new YassTree(body, this);
+          YassTree treeParser = new YassTree(body, this, level);
           treeParser.h.declareVirtualVar(index, new Symbol(Symbol.Types.STRING, i));
           treeParser.h.declareVirtualVar(value, new Symbol(Symbol.Types.STRING, list.get(i)));
           treeParser.foreachBody();
@@ -232,7 +281,7 @@ public class Handler {
 
         for (Map.Entry entry : dict.entrySet())
         {
-          YassTree treeParser = new YassTree(body, this);
+          YassTree treeParser = new YassTree(body, this, level);
           treeParser.h.declareVirtualVar(index, new Symbol(Symbol.Types.STRING, entry.getKey()));
           treeParser.h.declareVirtualVar(value, new Symbol(Symbol.Types.STRING, entry.getValue()));
           treeParser.foreachBody();
@@ -249,8 +298,8 @@ public class Handler {
   //<editor-fold desc="Result">
   public void writeLine(String string) {
     if (errorList.isEmpty()) {
-      sb.append(string);
-      sb.append(System.getProperty("line.separator"));
+      propertiesSb.get(level).append(string);
+      propertiesSb.get(level).append(System.getProperty("line.separator"));
     }
   }
   //</editor-fold>

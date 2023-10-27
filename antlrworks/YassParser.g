@@ -146,7 +146,7 @@ foreach
 	;
 	
 foreachBody
-	:	ruleset -> ^(FOREACHBODY ruleset)
+	:	block -> ^(FOREACHBODY block)
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -168,8 +168,8 @@ block
 	@init{
 		boolean hasContent = false;
 	}
-	: (property {hasContent=true;} | ruleset {hasContent=true;} | mixinCall {hasContent=true;})*
-	-> {hasContent}? ^(BLOCK property* mixinCall* ruleset*)
+	: (property {hasContent=true;} | ruleset {hasContent=true;} | mixinCall {hasContent=true;} | foreach {hasContent=true;})*
+	-> {hasContent}? ^(BLOCK property* mixinCall* foreach* ruleset*)
 	-> EMPTYBLOCK
 	;
 

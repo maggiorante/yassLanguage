@@ -15,7 +15,6 @@ import org.unibg.utils.*;
 
 @members {
 Handler h;
-int level;
 
 public Handler getHandler(){
 	return h;
@@ -23,10 +22,9 @@ public Handler getHandler(){
 
 void init() {
 	h = new Handler(input);
-	level = 0;
 }
 
-public YassTree(CommonTree node, Handler h)
+public YassTree(CommonTree node, Handler h, int groupLevel)
 {
   this(new CommonTreeNodeStream(node));
   this.h = new Handler(input, h);
@@ -141,7 +139,7 @@ foreach
 	;
 	
 foreachBody
-	:	^(FOREACHBODY ruleset)
+	:	^(FOREACHBODY block)
 	;
 
 // ----------------------------------------------------------------------------------------
@@ -156,31 +154,27 @@ mixinCall
 // Style blocks
 ruleset
 	@init{
-		level++;
+		h.incrementLevel();
+		int parentSelectorLength = h.getCurrentSelector().length();
+		h.pushSb();	
 	}
 	@after{
-		level--;
+		h.popSb();
+		h.resetCurrentSelector(parentSelectorLength);
+		h.decrementLevel();
 	}
-	:	^(RULE s=selectors block[$s.value])
+	:	^(RULE s=selectors {h.setCurrentSelector($s.value);} block)
 	;
 
-block [String parentSelector]
-	scope
-	{
-		String parent;
-	}
-	@init
-	{
-		$block::parent = $parentSelector;
-	}
-	:	^(BLOCK {h.writeLine($parentSelector + " {");} property* mixinCall* {h.writeLine("}");} ruleset*)
+block
+	:	^(BLOCK property* mixinCall* foreach* ruleset*)
 	| EMPTYBLOCK
 	;
 	
 // ----------------------------------------------------------------------------------------
 
 // Selector
-selectors returns [String value]
+selectors returns [StringBuilder value]
 	scope
 	{
 		StringBuilder sb;
@@ -195,8 +189,8 @@ selectors returns [String value]
 	}
 	@after
 	{
-		if (level > 1 && !$selectors::firstTokenIsParentRef) $selectors::sb.insert(0, " ").insert(0, $block::parent);
-		$value = $selectors::sb.toString();
+		if (h.getLevel() > 1 && !$selectors::firstTokenIsParentRef) $selectors::sb.insert(0, " ").insert(0, h.getCurrentSelector());
+		$value = $selectors::sb;
 	}
 	: selector (COMMA {$selectors::sb.append(", ");} selector )*
 	;
@@ -221,7 +215,7 @@ element
 	| DOT i=identifier {$selectors::sb.append($DOT.text + $i.value);}
 	| HASH i=identifier {$selectors::sb.append($HASH.text + $i.value);}
 	| TIMES {$selectors::sb.append($TIMES.text);}
-	| PARENTREF {if (level > 1) $selectors::sb.append($block::parent); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true; if(level <= 1) h.handleParentRefError($PARENTREF);}
+	| PARENTREF {if (h.getLevel() > 1) $selectors::sb.append(h.getCurrentSelector()); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true; if(h.getLevel() <= 1) h.handleParentRefError($PARENTREF);}
 	| pseudo
 	;
 	
@@ -273,8 +267,8 @@ args returns [String value]
 expr
 	: m=measurement {$args::sb.append($m.value);} (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
 	| i=identifier {$args::sb.append($i.value);} (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
-	| Color {$args::sb.append($Color.text);}  (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
-	| StringLiteral {$args::sb.append($StringLiteral.text);}  (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
+	| Color {$args::sb.append($Color.text);} (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
+	| StringLiteral {$args::sb.append($StringLiteral.text);} (IMPORTANT {$args::sb.append(" ").append($IMPORTANT.text);})*
 	;
 
 measurement returns [String value]
