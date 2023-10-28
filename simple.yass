@@ -6,24 +6,13 @@ colors = {
   "white": #090C02
 };
 
-sizes = {
-  "big": 200px,
-  "medium": 100px,
-  "small": 50px
-};
-
-body {
+$foreach(colors) {
   color: black;
-  $foreach(colors) {
-    .btn-${index} {
-      color: ${value};
-      $foreach(i, size : sizes) {
-        ${i}: ${size};
-      }
-
-      $foreach(i, size : sizes) {
-        ${i}: ${size};
-      }
+  color: ${value};
+  .btn-${index} {
+    color: ${value};
+    &:hover {
+      color: white;
     }
   }
 }

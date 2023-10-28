@@ -70,6 +70,7 @@ stylesheet
 statement
   : ruleset
   | variableDeclaration terminator -> variableDeclaration
+  | foreach
   ;
   
 terminator

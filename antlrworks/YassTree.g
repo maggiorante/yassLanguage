@@ -45,6 +45,7 @@ stylesheet
 statement
   : ruleset
   | variableDeclaration
+  | foreach
   ;
 
 // ----------------------------------------------------------------------------------------
