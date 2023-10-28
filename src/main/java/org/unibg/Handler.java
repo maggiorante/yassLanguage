@@ -158,7 +158,8 @@ public class Handler {
     if (checkMixinReference(identifier)) {
       String name = identifier.getText();
       Mixin m = mixins.resolve(name);
-      if (arguments.size() != m.getArguments().size()) {
+      int argumentsSize = arguments != null ? arguments.size() : 0;
+      if (argumentsSize != m.getArguments().size()) {
         handleError(Errors.MISMATCH_ARGUMENTS_MIXIN_ERROR, identifier);
       }
       YassTree treeParser = new YassTree(m.getBody(), this, -1);

@@ -122,7 +122,7 @@ dictItem
 	;
 	
 mixin
-	:	LPAREN Identifier (COMMA Identifier)* RPAREN BlockStart mixinBody BlockEnd -> ^(MIXIN Identifier+ mixinBody)
+	:	LPAREN (Identifier (COMMA Identifier)*)? RPAREN BlockStart mixinBody BlockEnd -> ^(MIXIN Identifier* mixinBody)
 	;
 	
 mixinBody
@@ -153,7 +153,7 @@ foreachBody
 
 // Mixins
 mixinCall
-	:	Mixin LPAREN Identifier (COMMA Identifier)* RPAREN -> ^(MIXINCALL Mixin Identifier+)
+	:	Mixin LPAREN (Identifier (COMMA Identifier)*)? RPAREN terminator -> ^(MIXINCALL Mixin Identifier*)
 	;
 
 // ----------------------------------------------------------------------------------------

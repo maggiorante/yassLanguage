@@ -6,10 +6,17 @@ colors = {
   "white": #090C02
 };
 
+btn = () {
+  border: 1px solid black;
+  border-radius: 1px;
+  outline: none;
+};
+
 $foreach(colors) {
   color: black;
   color: ${value};
   .btn-${index} {
+    $btn();
     color: ${value};
     &:hover {
       color: white;

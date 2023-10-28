@@ -111,7 +111,7 @@ mixin returns [Mixin mixn]
 	@init{
 		List<String> arguments = new ArrayList<String>();
 	}
-	:	^(MIXIN (Identifier {arguments.add($Identifier.text);})+ r=.) {$mixn = new Mixin(arguments, r);}
+	:	^(MIXIN (Identifier {arguments.add($Identifier.text);})* r=.) {$mixn = new Mixin(arguments, r);}
 	;
 		
 mixinBody
@@ -145,7 +145,7 @@ foreachBody
 
 // Mixins
 mixinCall
-	:	^(MIXINCALL Mixin idx+=Identifier+ {h.mixinCall($Mixin, $idx);})
+	:	^(MIXINCALL Mixin idx+=Identifier* {h.mixinCall($Mixin, $idx);})
 	;
 
 // ----------------------------------------------------------------------------------------
