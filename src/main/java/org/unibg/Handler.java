@@ -62,23 +62,74 @@ public class Handler {
     return currentSelector;
   }
   public void setCurrentSelector(StringBuilder currentSelector) {
-    this.currentSelector = currentSelector;
+    trim(currentSelector, ' ');
+    trim(currentSelector, ',');
+    this.currentSelector =  normalizeWhiteSpace(currentSelector);
   }
   public void resetCurrentSelector(int length) {
-    currentSelector.delete(length, currentSelector.length());
+    currentSelector.delete(length, currentSelector.length() + 1);
   }
   public void pushSb() {
     propertiesSb.add(new StringBuilder());
     sb.add(new StringBuilder());
   }
+  public static StringBuilder trim(StringBuilder sb, char character) {
+    int j = 0;
+    // trim leading whitespaces
+    for(int i = 0; i < sb.length(); i++) {
+      if (sb.charAt(i) != character) {
+        break;
+      }
+      j++;
+    }
+    sb.delete(0, j);
+    j = 0;
+    // trim trailing whitespaces
+    for(int i = sb.length() - 1; i >= 0; i--) {
+      if (sb.charAt(i) != character) {
+        break;
+      }
+      j++;
+    }
+    sb.delete(sb.length() - j, sb.length());
+    return sb;
+  }
+  public static StringBuilder normalizeWhiteSpace(StringBuilder input) {
+    if (input == null) {
+      return null;
+    }
+    StringBuilder result = new StringBuilder();
+    boolean atStart = true;
+    boolean whitespaceToInsert = false;
+    for (int i = 0; i < input.length(); i++) {
+      char next = input.charAt(i);
+      if (Character.isWhitespace(next)) {
+        if (!atStart) {
+          whitespaceToInsert = true;
+        }
+      } else {
+        if (whitespaceToInsert) {
+          result.append(' ');
+          whitespaceToInsert = false;
+        }
+        atStart = false;
+        result.append(next);
+      }
+    }
+    return result;
+  }
   public void popSb() {
     StringBuilder mergeInto = sb.get(level - 1);
-    mergeInto.append(currentSelector);
-    mergeInto.append(" {");
-    mergeInto.append(System.getProperty("line.separator"));
-    mergeInto.append(propertiesSb.get(level));
-    mergeInto.append("}");
-    mergeInto.append(System.getProperty("line.separator"));
+    StringBuilder currentProperties = propertiesSb.get(level);
+    // write only rulesets that are not empty
+    if (currentProperties.length() != 0) {
+      mergeInto.append(currentSelector);
+      mergeInto.append(" {");
+      mergeInto.append(System.getProperty("line.separator"));
+      mergeInto.append(currentProperties);
+      mergeInto.append("}");
+      mergeInto.append(System.getProperty("line.separator"));
+    }
     mergeInto.append(sb.get(level));
     propertiesSb.remove(level);
     sb.remove(level);

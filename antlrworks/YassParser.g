@@ -9,7 +9,6 @@ options {
 tokens {
 	RULE;
 	BLOCK;
-	EMPTYBLOCK;
 	PROPERTY;
 	ATTRIB;
 	SPACEDELEMENT;
@@ -165,18 +164,14 @@ ruleset
 
 // "backtrack = true;" needed
 block
-	@init{
-		boolean hasContent = false;
-	}
-	: (property {hasContent=true;} | ruleset {hasContent=true;} | mixinCall {hasContent=true;} | foreach {hasContent=true;})*
-	-> {hasContent}? ^(BLOCK property* mixinCall* foreach* ruleset*)
-	-> EMPTYBLOCK
+	: (property | ruleset | mixinCall | foreach)* -> ^(BLOCK property* mixinCall* foreach* ruleset*)
 	;
 
 // ----------------------------------------------------------------------------------------
 
 // Selector
-// Per farlo funzionare o fai così e per i selector metti il token virtuale SELECTOR oppure lo lasci senza trasformarlo in AST. Stampa l'ast da codice per capire il motivo...
+// Per farlo funzionare o fai così e per i selector crei il token virtuale SELECTOR e a questo punto puoi eliminare le virgole.
+// Se elimini e basta le virgole allora poi li prende tutti come parti di un selector e non come tanti selectors. Stampa l'ast da codice per vedere questa cosa.
 selectors
 	: selector (COMMA selector)*
 	;

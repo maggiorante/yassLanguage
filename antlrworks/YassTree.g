@@ -167,7 +167,6 @@ ruleset
 
 block
 	:	^(BLOCK property* mixinCall* foreach* ruleset*)
-	| EMPTYBLOCK
 	;
 	
 // ----------------------------------------------------------------------------------------
@@ -188,10 +187,10 @@ selectors returns [StringBuilder value]
 	}
 	@after
 	{
-		if (h.getLevel() > 1 && !$selectors::firstTokenIsParentRef) $selectors::sb.insert(0, " ").insert(0, h.getCurrentSelector());
+		if (!$selectors::firstTokenIsParentRef && h.getLevel() > 1) $selectors::sb.insert(0, " ").insert(0, h.getCurrentSelector());
 		$value = $selectors::sb;
 	}
-	: selector (COMMA {$selectors::sb.append(", ");} selector )*
+	: selector (COMMA {$selectors::sb.append(", ");} selector)*
 	;
 
 selector
@@ -214,7 +213,7 @@ element
 	| DOT i=identifier {$selectors::sb.append($DOT.text + $i.value);}
 	| HASH i=identifier {$selectors::sb.append($HASH.text + $i.value);}
 	| TIMES {$selectors::sb.append($TIMES.text);}
-	| PARENTREF {if (h.getLevel() > 1) $selectors::sb.append(h.getCurrentSelector()); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true; if(h.getLevel() <= 1) h.handleParentRefError($PARENTREF);}
+	| PARENTREF {$selectors::sb.append(h.getCurrentSelector()); if(!$selectors::firstTokenSet) $selectors::firstTokenIsParentRef=true;}
 	| pseudo
 	;
 	

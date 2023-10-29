@@ -13,13 +13,13 @@ btn = (color) {
   outline: none;
 };
 
-$foreach(colors) {
-  color: black;
-  color: ${value};
-  .btn-${index} {
-    $btn(value);
-    &:hover {
-      color: white;
+& body, & p, div {
+  $foreach(colors) {
+    .btn-${index} {
+      $btn(value);
+      &:hover {
+        color: white;
+      }
     }
   }
 }
