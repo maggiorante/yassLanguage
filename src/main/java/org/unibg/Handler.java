@@ -145,8 +145,7 @@ public class Handler {
     NULL_VAR_ERROR("Variable has null value, this is caused by referencing a non-existent variable"),
     MISMATCH_ARGUMENTS_MIXIN_ERROR("The number of passed arguments when calling the mixin did not match the declared ones'"),
     NOT_STRING_VAR_ERROR("Variable must be of type STRING"),
-    INDEX_OUT_OF_RANGE_ERROR("The requested index is bigger than the list size"),
-    NOT_NESTED_PARENTREF_ERROR("& symbol cannot be used inside top class selectors", false);
+    INDEX_OUT_OF_RANGE_ERROR("The requested index is bigger than the list size");
     private final String friendlyName;
     private final boolean showTokenText;
     Errors(String friendlyName) {
@@ -175,9 +174,6 @@ public class Handler {
     }
 
     errorList.add(errMsg);
-  }
-  public void handleParentRefError(CommonTree tk) {
-    handleError(Handler.Errors.NOT_NESTED_PARENTREF_ERROR, tk);
   }
   //</editor-fold>
 
