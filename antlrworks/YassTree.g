@@ -24,7 +24,7 @@ void init() {
 	h = new Handler(input);
 }
 
-public YassTree(CommonTree node, Handler h, int groupLevel)
+public YassTree(CommonTree node, Handler h)
 {
   this(new CommonTreeNodeStream(node));
   this.h = new Handler(input, h);
@@ -155,7 +155,7 @@ ruleset
 	@init{
 		h.incrementLevel();
 		int parentSelectorLength = h.getCurrentSelector().length();
-		h.pushSb();	
+		h.pushSb();
 	}
 	@after{
 		h.popSb();

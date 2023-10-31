@@ -213,7 +213,7 @@ public class Handler {
       if (argumentsSize != m.getArguments().size()) {
         handleError(Errors.MISMATCH_ARGUMENTS_MIXIN_ERROR, identifier);
       }
-      YassTree treeParser = new YassTree(m.getBody(), this, -1);
+      YassTree treeParser = new YassTree(m.getBody(), this);
       for (int i=0; i<m.getArguments().size(); i++) {
           treeParser.h.declareVirtualVar(m.getArguments().get(i), treeParser.h.getVar((CommonTree)arguments.get(i), true));
       }
@@ -321,8 +321,8 @@ public class Handler {
         List list = (List)getVarValue(element, Symbol.Types.LIST);
 
         for (int i=0; i<list.size(); i++){
-          YassTree treeParser = new YassTree(body, this, level);
-          treeParser.h.declareVirtualVar(index, new Symbol(Symbol.Types.STRING, i));
+          YassTree treeParser = new YassTree(body, this);
+          treeParser.h.declareVirtualVar(index, new Symbol(Symbol.Types.STRING, Integer.toString(i)));
           treeParser.h.declareVirtualVar(value, new Symbol(Symbol.Types.STRING, list.get(i)));
           treeParser.foreachBody();
         }
@@ -333,7 +333,7 @@ public class Handler {
 
         for (Map.Entry entry : dict.entrySet())
         {
-          YassTree treeParser = new YassTree(body, this, level);
+          YassTree treeParser = new YassTree(body, this);
           treeParser.h.declareVirtualVar(index, new Symbol(Symbol.Types.STRING, entry.getKey()));
           treeParser.h.declareVirtualVar(value, new Symbol(Symbol.Types.STRING, entry.getValue()));
           treeParser.foreachBody();
