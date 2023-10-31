@@ -6,6 +6,13 @@ colors = {
   "white": #090C02
 };
 
+pseudo = {
+  "hover": "white",
+  "active": "black"
+};
+
+prova = ["prova", "provolone"];
+
 btn = (color) {
   color: ${color};
   border: 1px solid black;
@@ -13,12 +20,20 @@ btn = (color) {
   outline: none;
 };
 
-& body, & p, div {
-  $foreach(colors) {
-    .btn-${index} {
-      $btn(value);
-      &:hover {
-        color: white;
+$foreach(prova) {
+  .div-${index} {
+    property: ${value};
+  }
+}
+
+& body, &, div {
+  $foreach(name, color : colors) {
+    .btn-${name} {
+      $btn(color);
+      $foreach(pseudo) {
+        &:${index} {
+          color: ${value};
+        }
       }
     }
   }
