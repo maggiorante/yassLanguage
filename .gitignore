@@ -13,7 +13,7 @@ src/main/antlr3/org/unibg/*
 .idea/compiler.xml
 .idea/libraries/
 *.iws
-*.iml
+# *.iml
 *.ipr
 
 ### Eclipse ###
